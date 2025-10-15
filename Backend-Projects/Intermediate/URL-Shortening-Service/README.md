@@ -1,12 +1,8 @@
-# URL Shortening Service
-
-https://roadmap.sh/projects/url-shortening-service
+# README
 
 ## Getting Started
 
 ```sh
-$ git clone https://github.com/soc221b/roadmap.sh.git
-$ cd roadmap.sh/Backend-Projects/Intermediate/URL-Shortening-Service
 $ npm ci
 ```
 

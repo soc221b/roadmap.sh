@@ -1,12 +1,8 @@
-# Caching Proxy
-
-https://roadmap.sh/projects/caching-server
+# README
 
 ## Getting Started
 
 ```sh
-$ git clone https://github.com/soc221b/roadmap.sh.git
-$ cd roadmap.sh/Backend-Projects/Intermediate/Caching-Proxy
 $ npm ci
 ```
 

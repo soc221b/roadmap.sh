@@ -1,12 +1,8 @@
 {
   "name": "task-tracker",
   "version": "1.0.0",
-  "description": "https://roadmap.sh/projects/task-tracker",
   "engines": {
     "node": "24"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "license": "MIT",
   "type": "module",

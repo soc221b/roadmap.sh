@@ -1,12 +1,8 @@
-# Task Tracker
-
-https://roadmap.sh/projects/task-tracker
+# README
 
 ## Getting Started
 
 ```sh
-$ git clone https://github.com/soc221b/roadmap.sh.git
-$ cd roadmap.sh/Backend-Projects/Beginner/Task-Tracker
 $ npm ci
 ```
 
