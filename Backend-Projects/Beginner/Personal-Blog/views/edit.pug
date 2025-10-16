@@ -1,0 +1,39 @@
+extends layout
+block breadcrumbs
+  ul
+    li
+      a(href="/") ../
+block content
+  h1(class="font-bold text-3xl mb-4") Update Article
+
+  form(id="update" action="/new" class="flex flex-col gap-4")
+    input(name="id" value=article.id required type="hidden")
+
+    input(name="title" value=article.title required class="border rounded p-2" placeholder="Title")
+
+    input(name="publishingDate" value=article.publishingDate type="date" required class="border rounded p-2" placeholder="Publishing Date" onfocus="(this.type='date')" onblur="(this.type=this.value?'date':'text')")
+
+    textarea(name="content" required class="border rounded p-2" rows="10" placeholder="Content")= article.content
+
+    button(type="submit" class="border rounded p-2 cursor-pointer w-fit") Update
+
+  script.
+    const form = document.querySelector('form[id="update"]')
+    form.querySelector('button[type="submit"]').addEventListener('click', async (e) => {
+      if (form.checkValidity() === false) return
+
+      e.preventDefault()
+      const formData = new FormData(form)
+      await fetch(`/article/${formData.get('id')}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: formData.get('title'),
+          publishingDate: formData.get('publishingDate'),
+          content: formData.get('content')
+        })
+      })
+      location.replace(`/article/${formData.get('id')}`)
+    })

@@ -1,0 +1,38 @@
+extends layout
+block breadcrumbs
+  ul
+    li
+      a(href="/") ../
+block content
+  h1(class="font-bold text-3xl mb-4") New Article
+
+  form(id="publish" action="/new" class="flex flex-col gap-4")
+    input(name="title" required class="border rounded p-2" placeholder="Title")
+
+    input(name="publishingDate" required class="border rounded p-2" placeholder="Publishing Date" onfocus="(this.type='date')" onblur="(this.type=this.value?'date':'text')")
+
+    textarea(name="content" required class="border rounded p-2" rows="10" placeholder="Content")
+
+    button(type="submit" class="border rounded p-2 cursor-pointer w-fit") Publish
+
+  script.
+    const form = document.querySelector('form[id="publish"]')
+    form.querySelector('button[type="submit"]').addEventListener('click', async (e) => {
+      if (form.checkValidity() === false) return
+
+      e.preventDefault()
+      const formData = new FormData(form)
+      const response = await fetch(`/article`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: formData.get('title'),
+          publishingDate: formData.get('publishingDate'),
+          content: formData.get('content')
+        })
+      })
+      const json = await response.json()
+      location.replace(`/article/${json.id}`)
+    })

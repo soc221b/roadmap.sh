@@ -1,0 +1,12 @@
+extends layout
+block breadcrumbs
+  ul
+    li
+      a(href="/") ../
+block content
+  body(class="max-w-3xl mx-auto p-6")
+    h1(class="flex justify-between items-center")
+      b(class="text-3xl")= article.title
+      i= article.publishingDate
+
+    p(class="mt-4")= article.content

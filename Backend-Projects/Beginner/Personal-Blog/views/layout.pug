@@ -1,0 +1,24 @@
+doctype html
+html
+  head
+    script(src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4")
+  body(class="max-w-3xl mx-auto p-6")
+    nav(class="flex justify-between")
+      block breadcrumbs
+      div
+
+      ul(class="flex justify-end gap-2")
+        li
+          a(href="/login") Login
+
+        form(id="logout")
+          button(type="submit" class="cursor-pointer") Logout
+        script.
+          document.querySelector('form[id="logout"] button[type="submit"]').addEventListener('click', async (e) => {
+            e.preventDefault()
+
+            await fetch(`/logout`, { method: "POST" })
+            location.replace('/home')
+          })
+
+    block content

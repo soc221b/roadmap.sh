@@ -1,0 +1,33 @@
+extends layout
+block content
+  h1(class="flex justify-between items-center mb-4")
+    b(class="text-3xl") Personal Blog
+    a(href="/new") +Add
+
+  if articles.length
+    ul
+      each article in articles
+        li
+          div(class="flex justify-between")
+            a(href="/article/" + article.id)
+              b= article.title
+
+            div(class="flex gap-2")
+              a(href="/edit/" + article.id) Edit
+              form(id="delete")
+                button(type="submit" data-id=article.id class="cursor-pointer") Delete
+  else
+    p There are no articles.
+
+  script.
+    for (const button of document.querySelectorAll('form[id="delete"] button[type="submit"]')) {
+      button.addEventListener('click', async (e) => {
+        e.preventDefault()
+
+        const confirmed = confirm('Are you sure you want to delete?')
+        if (confirmed === false) return
+
+        await fetch(`/article/${button.dataset['id']}`, { method: "DELETE" })
+        location.reload()
+      })
+    }

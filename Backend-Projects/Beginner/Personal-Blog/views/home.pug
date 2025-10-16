@@ -1,0 +1,14 @@
+extends layout
+block content
+  h1(class="font-bold text-3xl mb-4") Personal Blog
+
+  if articles.length
+    ul
+      each article in articles
+        li
+          div(class="flex justify-between")
+            a(href="/article/" + article.id)
+              b= article.title
+            i= article.publishingDate
+  else
+    p There are no articles.

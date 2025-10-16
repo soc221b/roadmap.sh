@@ -1,0 +1,25 @@
+{
+  "name": "task-tracker",
+  "version": "1.0.0",
+  "engines": {
+    "node": "24"
+  },
+  "license": "MIT",
+  "type": "module",
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^24.7.2"
+  },
+  "dependencies": {
+    "@types/sanitizer": "^0.0.31",
+    "bcrypt": "^6.0.0",
+    "body-parser": "^2.2.0",
+    "cookie": "^1.0.2",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "pug": "^3.0.3",
+    "sanitizer": "^0.1.3"
+  }
+}
