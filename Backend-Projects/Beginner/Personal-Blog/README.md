@@ -9,8 +9,7 @@ $ npm ci
 ## Environment Variables
 
 ```sh
-$ touch .env
-$ echo "SECRET=SHHHHH" >> .env
+$ echo "SECRET=SHHHHH" > .env
 ```
 
 ## Run Locally
