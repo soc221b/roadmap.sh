@@ -1,7 +1,8 @@
+
 doctype html
 html
   head
-    script(src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4")
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   body(class="max-w-3xl mx-auto p-6")
     nav(class="flex justify-between")
       block breadcrumbs
@@ -13,12 +14,8 @@ html
 
         form(id="logout")
           button(type="submit" class="cursor-pointer") Logout
-        script.
-          document.querySelector('form[id="logout"] button[type="submit"]').addEventListener('click', async (e) => {
-            e.preventDefault()
 
-            await fetch(`/logout`, { method: "POST" })
-            location.replace('/home')
-          })
 
     block content
+
+<script type="module" src="/logout.js"></script>

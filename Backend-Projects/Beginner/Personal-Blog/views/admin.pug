@@ -19,47 +19,5 @@ block content
   else
     p There are no articles.
 
-  script.
-    for (const button of document.querySelectorAll('form[id="delete"] button[type="submit"]')) {
-      button.addEventListener('click', async (e) => {
-        e.preventDefault()
-
-        const confirmed = confirm('Are you sure you want to delete?')
-        if (confirmed === false) return
-
-        await fetch(`/article/${button.dataset['id']}`, { method: "DELETE" })
-        location.reload()
-      })
-    }
-
-  script.
-    let cancelled = false
-    async function refresh() {
-      if (cancelled) return
-      const response =await fetch(`/refresh`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-      if (response.ok) {
-      } else if (response.status === 401) {
-        alert('Session expired')
-        return
-      } else {
-        // Report to server
-        return
-      }
-      await sleep(10_000)
-      refresh()
-    }
-    async function sleep(ms) {
-      return new Promise(resolve => {
-        setTimeout(resolve, ms)
-      })
-    }
-
-    refresh()
-    window.addEventListener('beforeunload', () => {
-      cancelled = true
-    })
+  <script type="module" src="/delete.js"></script>
+  <script type="module" src="/refresh.js"></script>

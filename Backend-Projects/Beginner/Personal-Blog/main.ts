@@ -9,13 +9,27 @@ import registerLogout from "./routes/logout/index.ts";
 import registerNew from "./routes/new/index.ts";
 import registerRefresh from "./routes/refresh/index.ts";
 import bodyParser from "body-parser";
+import helmet from "helmet";
 
 const PORT = 8080;
 const HOSTNAME = "localhost";
 
 const app = express();
 app.set("view engine", "pug");
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        "script-src": [
+          "'self'",
+          "https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4",
+        ],
+      },
+    },
+  })
+);
 app.use(bodyParser.json());
+app.use(express.static("static"));
 
 registerAdmin(app);
 registerArticle(app);

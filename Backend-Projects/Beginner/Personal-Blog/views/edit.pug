@@ -17,23 +17,4 @@ block content
 
     button(type="submit" class="border rounded p-2 cursor-pointer w-fit") Update
 
-  script.
-    const form = document.querySelector('form[id="update"]')
-    form.querySelector('button[type="submit"]').addEventListener('click', async (e) => {
-      if (form.checkValidity() === false) return
-
-      e.preventDefault()
-      const formData = new FormData(form)
-      await fetch(`/article/${formData.get('id')}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title: formData.get('title'),
-          publishingDate: formData.get('publishingDate'),
-          content: formData.get('content')
-        })
-      })
-      location.replace(`/article/${formData.get('id')}`)
-    })
+  <script type="module" src="/edit.js"></script>

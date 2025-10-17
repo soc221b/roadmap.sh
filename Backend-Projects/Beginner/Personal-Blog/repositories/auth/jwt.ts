@@ -142,6 +142,6 @@ export class JWTAuthRepository implements AuthRepository {
   }
 
   private async getRefreshToken(headers: Headers): Promise<string> {
-    return cookie.parse(headers.get("Cookie"))[REFRESH_TOKEN_COOKIE_NAME];
+    return cookie.parse(headers.get("Cookie") ?? "")[REFRESH_TOKEN_COOKIE_NAME];
   }
 }
