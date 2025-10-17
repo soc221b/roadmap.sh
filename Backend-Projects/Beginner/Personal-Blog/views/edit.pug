@@ -6,7 +6,7 @@ block breadcrumbs
 block content
   h1(class="font-bold text-3xl mb-4") Update Article
 
-  form(id="update" action="/new" class="flex flex-col gap-4")
+  form(id="update" class="flex flex-col gap-4")
     input(name="id" value=article.id required type="hidden")
 
     input(name="title" value=article.title required class="border rounded p-2" placeholder="Title")
