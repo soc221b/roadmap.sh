@@ -1,7 +1,7 @@
 import { ArticleRepository } from "../interfaces/article-repository.ts";
 import { AuthRepository } from "../interfaces/auth-repository.ts";
 import { FileSystemArticleRepository } from "../repositories/article/file-system.ts";
-import { JWTAuthRepository } from "../repositories/auth.ts";
+import { JWTAuthRepository } from "../repositories/auth/jwt.ts";
 
 const articleRepository: ArticleRepository = new FileSystemArticleRepository();
 const authRepository: AuthRepository = new JWTAuthRepository();

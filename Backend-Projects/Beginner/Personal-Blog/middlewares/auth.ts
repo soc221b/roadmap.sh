@@ -1,14 +1,18 @@
 import type { RequestHandler } from "express";
-import cookie from "cookie";
-import jwt from "jsonwebtoken";
+import inject from "../dependency-injection/index.ts";
+import { AuthRepository } from "../interfaces/auth-repository.ts";
+import { createHeaders } from "../utils/create-headers.ts";
 
-const authMiddleware: RequestHandler = (req, res, next) => {
-  const cookies = cookie.parse(req.headers.cookie || "");
-  try {
-    jwt.verify(cookies.Token ?? "", process.env.SECRET);
+const authMiddleware: RequestHandler = async (req, res, next) => {
+  const authRepository = inject(AuthRepository);
+
+  const headers = createHeaders(req, res);
+
+  const valid = await authRepository.verify(headers);
+  if (valid) {
     next();
-  } catch {
-    res.clearCookie("Token");
+  } else {
+    authRepository.invalidate(headers);
     res.sendStatus(401);
   }
 };

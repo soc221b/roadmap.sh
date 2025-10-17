@@ -1,9 +1,15 @@
 import type { Express } from "express";
-import authMiddleware from "../../middlewares/auth.ts";
+import inject from "../../dependency-injection/index.ts";
+import { AuthRepository } from "../../interfaces/auth-repository.ts";
+import { createHeaders } from "../../utils/create-headers.ts";
 
 const register = (app: Express) => {
   app.post("/logout", async (req, res) => {
-    res.clearCookie("Token", { domain: "localhost", path: "/" });
+    const authRepository = inject(AuthRepository);
+
+    const headers = createHeaders(req, res);
+
+    await authRepository.invalidate(headers);
     res.sendStatus(200);
   });
 };
