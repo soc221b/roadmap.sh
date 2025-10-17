@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import registerAdmin from "./routes/admin/index.ts";
 import registerArticle from "./routes/article/index.ts";
 import registerEdit from "./routes/edit/index.ts";
@@ -16,6 +17,11 @@ const HOSTNAME = "localhost";
 
 const app = express();
 app.set("view engine", "pug");
+app.use(
+  cors({
+    origin: `http://${HOSTNAME}:${PORT}`,
+  })
+);
 app.use(
   helmet({
     contentSecurityPolicy: {
