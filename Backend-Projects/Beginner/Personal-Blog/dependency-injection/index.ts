@@ -11,11 +11,11 @@ function inject(token: typeof AuthRepository): AuthRepository;
 function inject(token: unknown) {
   switch (token) {
     case ArticleRepository: {
-      return articleRepository as ArticleRepository;
+      return articleRepository;
     }
 
     case AuthRepository: {
-      return authRepository as AuthRepository;
+      return authRepository;
     }
 
     default: {
