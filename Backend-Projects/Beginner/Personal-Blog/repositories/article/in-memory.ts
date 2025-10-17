@@ -1,5 +1,5 @@
-import type { Article } from "../interfaces/article.ts";
-import { ArticleRepository } from "../interfaces/article-repository.ts";
+import type { Article } from "../../interfaces/article.ts";
+import { ArticleRepository } from "../../interfaces/article-repository.ts";
 
 export class InMemoryArticleRepository implements ArticleRepository {
   private articles: Article[] = [
