@@ -9,7 +9,8 @@ $ npm ci
 ## Environment Variables
 
 ```sh
-$ echo "SECRET=SHHHHH" > .env
+$ echo "ACCESS_TOKEN_SECRET=SHHHH" >> .env
+$ echo "REFRESH_TOKEN_SECRET=SHHHHHHHHH" >> .env
 ```
 
 ## Run Locally

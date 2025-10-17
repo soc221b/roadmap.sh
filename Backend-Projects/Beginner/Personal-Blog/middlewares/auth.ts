@@ -8,11 +8,11 @@ const authMiddleware: RequestHandler = async (req, res, next) => {
 
   const headers = createHeaders(req, res);
 
-  const valid = await authRepository.verify(headers);
+  const valid = await authRepository.verityAccessToken(headers);
   if (valid) {
     next();
   } else {
-    authRepository.invalidate(headers);
+    await authRepository.logout(headers);
     res.sendStatus(401);
   }
 };

@@ -12,5 +12,8 @@ export const createHeaders: (req: Request, res: Response) => Headers = (
     set: (name, value) => {
       res.setHeader(name, value);
     },
+    remove: (name) => {
+      res.removeHeader(name);
+    },
   };
 };

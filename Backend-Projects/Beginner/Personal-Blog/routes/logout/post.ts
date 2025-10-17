@@ -9,7 +9,7 @@ const register = (app: Express) => {
 
     const headers = createHeaders(req, res);
 
-    await authRepository.invalidate(headers);
+    await authRepository.logout(headers);
     res.sendStatus(200);
   });
 };

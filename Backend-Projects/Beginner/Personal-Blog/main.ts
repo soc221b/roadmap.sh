@@ -7,6 +7,7 @@ import registerIndex from "./routes/index/index.ts";
 import registerLogin from "./routes/login/index.ts";
 import registerLogout from "./routes/logout/index.ts";
 import registerNew from "./routes/new/index.ts";
+import registerRefresh from "./routes/refresh/index.ts";
 import bodyParser from "body-parser";
 
 const PORT = 8080;
@@ -24,6 +25,7 @@ registerIndex(app);
 registerLogin(app);
 registerLogout(app);
 registerNew(app);
+registerRefresh(app);
 
 app.listen(PORT, HOSTNAME, (err) => {
   if (err) {

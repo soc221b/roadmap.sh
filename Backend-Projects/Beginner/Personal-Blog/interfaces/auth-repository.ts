@@ -4,7 +4,9 @@ import type { User } from "./user.ts";
 export abstract class AuthRepository {
   abstract login(user: User, headers: Headers): Promise<void>;
 
-  abstract verify(headers: Headers): Promise<boolean>;
+  abstract refreshAccessToken(headers: Headers): Promise<boolean>;
 
-  abstract invalidate(headers: Headers): Promise<void>;
+  abstract verityAccessToken(headers: Headers): Promise<boolean>;
+
+  abstract logout(headers: Headers): Promise<void>;
 }

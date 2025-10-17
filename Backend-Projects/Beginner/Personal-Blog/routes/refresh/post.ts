@@ -4,15 +4,15 @@ import { AuthRepository } from "../../interfaces/auth-repository.ts";
 import { createHeaders } from "../../utils/create-headers.ts";
 
 const register = (app: Express) => {
-  app.get("/", async (req, res) => {
+  app.post("/refresh", async (req, res) => {
     const authRepository = inject(AuthRepository);
 
     const headers = createHeaders(req, res);
 
-    if (await authRepository.verityAccessToken(headers)) {
-      res.redirect("/admin");
+    if (await authRepository.refreshAccessToken(headers)) {
+      res.sendStatus(200);
     } else {
-      res.redirect("/home");
+      res.sendStatus(401);
     }
   });
 };
