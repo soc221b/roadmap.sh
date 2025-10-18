@@ -16,7 +16,8 @@ const register = (app: Express) => {
       });
       res.status(201);
       res.send({ id });
-    } catch {
+    } catch (e) {
+      console.error(e);
       res.sendStatus(400);
     }
   });

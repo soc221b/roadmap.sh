@@ -5,10 +5,10 @@ import type { Article } from "../../interfaces/article.ts";
 import { ArticleRepository } from "../../interfaces/article-repository.ts";
 import { resolve } from "path";
 
-const path = resolve(import.meta.dirname, "./articles.json");
+const path = resolve(import.meta.dirname, "./file-system/articles.json");
 const schema = z.array(
   z.object({
-    id: z.string().regex(/^\d+$/),
+    id: z.int(),
     title: z.string(),
     // z.iso.date() do not accepts dates like "234567-08-09"
     // publishingDate: z.iso.date(),
@@ -36,10 +36,7 @@ export class FileSystemArticleRepository implements ArticleRepository {
 
   async post(article: Omit<Article, "id">): Promise<Pick<Article, "id">> {
     const articles = await this.readAll();
-    const id =
-      Math.max(0, ...articles.map((a) => a.id).map((id) => parseInt(id, 10))) +
-      1 +
-      "";
+    const id = Math.max(0, ...articles.map((a) => a.id).map((id) => id)) + 1;
     await this.writeAll(
       articles.concat({
         ...article,

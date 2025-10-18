@@ -9,7 +9,9 @@ const register = (app: Express) => {
 
     try {
       res.render("edit", {
-        article: await articleRepository.get({ id: req.params.id }),
+        article: await articleRepository.get({
+          id: parseInt(req.params.id, 10),
+        }),
       });
     } catch {
       res.sendStatus(404);

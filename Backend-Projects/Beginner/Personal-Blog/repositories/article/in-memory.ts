@@ -4,14 +4,14 @@ import { ArticleRepository } from "../../interfaces/article-repository.ts";
 export class InMemoryArticleRepository implements ArticleRepository {
   private articles: Article[] = [
     {
-      id: "1",
+      id: 0,
       title: "My first article",
       publishingDate: "2024-08-07",
       content:
         "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
     },
     {
-      id: "2",
+      id: 1,
       title: "Second article",
       publishingDate: "2024-08-04",
       content:
@@ -33,12 +33,7 @@ export class InMemoryArticleRepository implements ArticleRepository {
   }
 
   async post(article: Omit<Article, "id">): Promise<Pick<Article, "id">> {
-    const id =
-      Math.max(
-        ...this.articles.map((a) => a.id).map((id) => parseInt(id, 10))
-      ) +
-      1 +
-      "";
+    const id = Math.max(...this.articles.map((a) => a.id).map((id) => id)) + 1;
     this.articles = this.articles.concat({
       ...article,
       id,

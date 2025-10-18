@@ -10,10 +10,11 @@ const register = (app: Express) => {
 
     try {
       await articleRepository.delete({
-        id: sanitizer.escape(req.params.id),
+        id: parseInt(sanitizer.escape(req.params.id), 10),
       });
       res.sendStatus(204);
-    } catch {
+    } catch (e) {
+      console.error(e);
       res.sendStatus(400);
     }
   });

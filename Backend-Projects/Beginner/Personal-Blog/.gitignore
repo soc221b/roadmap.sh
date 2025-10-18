@@ -1,2 +1,4 @@
 node_modules
 .env
+/prisma/generated/prisma
+/repositories/article/orm/generated

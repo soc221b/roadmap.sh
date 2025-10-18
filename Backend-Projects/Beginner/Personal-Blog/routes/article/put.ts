@@ -10,13 +10,14 @@ const register = (app: Express) => {
 
     try {
       await articleRepository.put({
-        id: sanitizer.escape(req.params.id),
+        id: parseInt(sanitizer.escape(req.params.id), 10),
         title: sanitizer.escape(req.body.title),
         publishingDate: sanitizer.escape(req.body.publishingDate),
         content: sanitizer.escape(req.body.content),
       });
       res.sendStatus(204);
-    } catch {
+    } catch (e) {
+      console.error(e);
       res.sendStatus(400);
     }
   });

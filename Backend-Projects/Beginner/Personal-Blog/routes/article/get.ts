@@ -10,7 +10,7 @@ const register = (app: Express) => {
     try {
       res.render("article", {
         article: await articleRepository.get({
-          id: sanitizer.escape(req.params.id),
+          id: parseInt(sanitizer.escape(req.params.id), 10),
         }),
       });
     } catch {
