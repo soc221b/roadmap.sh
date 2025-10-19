@@ -1,0 +1,37 @@
+POST http://localhost:8080/posts
+Content-Type: application/json
+
+{
+  "title": "My second Blog Post",
+  "content": "This is the content of my second blog post.",
+  "category": "Technology",
+  "tags": "Programming"
+}
+
+###
+
+PUT http://localhost:8080/posts/2
+Content-Type: application/json
+
+{
+  "title": "My Updated Blog Post",
+  "content": "This is the updated content of my first blog post.",
+  "category": "Technology",
+  "tags": ["Tech"]
+}
+
+###
+
+DELETE http://localhost:8080/posts/3
+
+###
+
+GET http://localhost:8080/posts/5
+
+###
+
+GET http://localhost:8080/posts
+
+###
+
+GET http://localhost:8080/posts?term=Tech
