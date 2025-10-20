@@ -5,7 +5,7 @@ Content-Type: application/json
   "title": "My second Blog Post",
   "content": "This is the content of my second blog post.",
   "category": "Technology",
-  "tags": "Programming"
+  "tags": ["Programming"]
 }
 
 ###
