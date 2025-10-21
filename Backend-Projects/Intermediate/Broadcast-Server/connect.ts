@@ -29,6 +29,7 @@ export function connect(user: string) {
     const parsed = JSON.parse(
       Buffer.from(data as unknown as string).toString()
     );
+    readline.clearLine(process.stdout, 0);
     readline.moveCursor(process.stdout, -1 * query.length, 0);
     console.log(`${parsed.user}: ${parsed.text}`);
     console.log(`${user}: `);
