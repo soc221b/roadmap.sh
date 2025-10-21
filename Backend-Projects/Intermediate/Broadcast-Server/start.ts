@@ -30,7 +30,7 @@ export function start() {
       ws.isAlive = false;
       ws.ping();
     });
-  }, HEARTBEAT_INTERVAL);
+  }, HEARTBEAT_INTERVAL / 2);
 }
 
 function heartbeat(this: WebSocket) {
