@@ -20,10 +20,7 @@ export class RootCommander extends ICommander {
         break;
       }
       case "mark-in-progress": {
-        const processor = new MarkInProgressCommander(
-          this.repository,
-          argv
-        );
+        const processor = new MarkInProgressCommander(this.repository, argv);
         await processor.process();
         break;
       }
