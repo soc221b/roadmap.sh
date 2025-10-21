@@ -64,6 +64,7 @@ app.post("/shorten", async (req, res) => {
   const url = req.body.url;
   if (z.httpUrl().safeParse(url).success === false) {
     res.sendStatus(400);
+    return;
   }
 
   const shortCode = nanoid(7);
@@ -92,6 +93,7 @@ app.put("/shorten/:shortCode", async (req, res) => {
   const url = req.body.url;
   if (z.httpUrl().safeParse(url).success === false) {
     res.sendStatus(400);
+    return;
   }
 
   const updatedAt = new Date().toISOString();
