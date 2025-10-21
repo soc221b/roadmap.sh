@@ -10,5 +10,12 @@ $ npm ci
 
 ```sh
 $ node main.ts start
-$ node main.ts connect --user Your-name
+```
+
+```sh
+$ node main.ts connect --user Bob
+```
+
+```sh
+$ node main.ts connect --user Alice
 ```
