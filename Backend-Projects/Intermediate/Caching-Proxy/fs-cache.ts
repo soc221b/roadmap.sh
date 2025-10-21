@@ -1,8 +1,9 @@
 import { writeFileSync, readFileSync, mkdirSync, rmdirSync } from "fs";
+import { resolve } from "path";
 import { ICache } from "./interface.ts";
 
 export class FSCache extends ICache {
-  private cacheDir: string = "./.cache";
+  private cacheDir: string = ".cache";
 
   async set(key: string, value: string): Promise<void> {
     mkdirSync(this.cacheDir, { recursive: true });
@@ -22,6 +23,10 @@ export class FSCache extends ICache {
   }
 
   private buildPath(key: string): string {
-    return `${this.cacheDir}/${encodeURIComponent(key)}`;
+    return resolve(
+      import.meta.dirname,
+      this.cacheDir,
+      Buffer.from(key).toString("base64url")
+    );
   }
 }
