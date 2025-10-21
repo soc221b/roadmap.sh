@@ -32,13 +32,13 @@ const responses = await Promise.all(
     )
     .map((url) => fetch(url))
 );
-const events: unknown[] = await Promise.all(
+const events: unknown[][] = await Promise.all(
   responses.map(async (response) => await response.json())
 );
 let chain: (event: unknown) => void = () => {};
 chain = watchEventHandler(chain);
 chain = issuesEventHandler(chain);
 chain = pushEventHandler(chain);
-events.map((event) => chain(event));
+events.flat().map((event) => chain(event));
 
 export {};
