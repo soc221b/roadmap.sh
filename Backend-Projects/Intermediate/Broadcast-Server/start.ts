@@ -16,9 +16,10 @@ export function start() {
     });
 
     ws.isAlive = true;
-    ws.on("pong", heartbeat);
+    ws.on("pong", function heartbeat() {
+      this.isAlive = true;
+    });
   });
-
   wss.on("close", () => {
     clearInterval(interval);
   });
@@ -31,10 +32,6 @@ export function start() {
       ws.ping();
     });
   }, HEARTBEAT_INTERVAL / 2);
-}
-
-function heartbeat(this: WebSocket) {
-  this.isAlive = true;
 }
 
 declare module "ws" {

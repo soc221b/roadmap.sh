@@ -13,8 +13,8 @@ export function connect(user: string) {
   const query = `${user}: `;
 
   client.on("error", console.error);
+
   client.on("open", async () => {
-    heartbeat.call(client);
     read();
 
     function read() {
@@ -24,7 +24,8 @@ export function connect(user: string) {
       });
     }
   });
-  client.on("message", (data, isBinary) => {
+
+  client.on("message", (data) => {
     const parsed = JSON.parse(
       Buffer.from(data as unknown as string).toString()
     );
@@ -33,17 +34,19 @@ export function connect(user: string) {
     console.log(`${user}: `);
     readline.moveCursor(process.stdout, query.length, -1);
   });
-  client.on("ping", heartbeat);
+
+  client.on("ping", function heartbeat() {
+    clearTimeout(this.pingTimeout);
+    this.pingTimeout = setTimeout(() => {
+      this.terminate();
+    }, HEARTBEAT_INTERVAL);
+  });
+
   client.on("close", function clear() {
     clearTimeout(this.pingTimeout);
+    console.log("\nserver terminated");
+    process.exit(0);
   });
-}
-
-function heartbeat(this: WebSocket) {
-  clearTimeout(this.pingTimeout);
-  this.pingTimeout = setTimeout(() => {
-    this.terminate();
-  }, HEARTBEAT_INTERVAL);
 }
 
 declare module "ws" {
