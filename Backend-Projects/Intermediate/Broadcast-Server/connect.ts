@@ -48,6 +48,6 @@ function heartbeat(this: WebSocket) {
 
 declare module "ws" {
   interface WebSocket {
-    pingTimeout: NodeJS.Timeout;
+    pingTimeout?: NodeJS.Timeout;
   }
 }
