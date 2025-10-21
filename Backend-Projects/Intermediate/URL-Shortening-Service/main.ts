@@ -123,18 +123,10 @@ app.put("/shorten/:shortCode", async (req, res) => {
 app.delete("/shorten/:shortCode", async (req, res) => {
   const shortCode = req.params.shortCode;
 
-  if (
-    await collection.findOne({
-      shortCode,
-    })
-  ) {
-    await collection.deleteOne({
-      shortCode,
-    });
-    res.sendStatus(204);
-  } else {
-    res.sendStatus(404);
-  }
+  await collection.deleteOne({
+    shortCode,
+  });
+  res.sendStatus(204);
 });
 
 app.get("/:shortCode", async (req, res) => {
