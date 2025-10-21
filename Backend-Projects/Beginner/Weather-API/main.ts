@@ -16,3 +16,4 @@ const api: IAPI = new API(service, redisClient);
 
 const data = await api.get();
 console.log(data);
+redisClient.close();
