@@ -1,5 +1,6 @@
 import { spawnSync } from "child_process";
-import { mkdirSync } from "fs";
+import { mkdirSync, rmSync } from "fs";
+import { resolve } from "path";
 import { chdir } from "process";
 
 function test(title: string, command: string[], expectedOutput: string) {
@@ -17,8 +18,8 @@ function test(title: string, command: string[], expectedOutput: string) {
   }
 }
 
-const dir = mkdirSync("test-" + new Date().toISOString(), { recursive: true });
-chdir(dir!);
+const dir = resolve(mkdirSync("test-" + new Date().toISOString(), { recursive: true })!);
+chdir(dir);
 
 test("Add Task", ["add", "Buy groceries"], "Task added successfully (ID: 1)");
 test("List All Tasks", ["list"], `1. [todo] Buy groceries`);
@@ -64,3 +65,5 @@ test(
 
 test("Delete Task", ["delete", "2"], "");
 test("List All Tasks", ["list"], `1. [done] Buy groceries this weekend`);
+
+rmSync(dir, { 'force': true, recursive: true});
