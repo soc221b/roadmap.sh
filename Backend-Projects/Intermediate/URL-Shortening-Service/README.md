@@ -24,7 +24,7 @@ $ node main.ts
 $ curl --header "Content-Type: application/json" \
   --request POST \
   --data '{"url":"https://google.com"}' \
-  http://localhost:3003/shorten
+  http://localhost:3000/shorten
 $ # ...
 ```
 

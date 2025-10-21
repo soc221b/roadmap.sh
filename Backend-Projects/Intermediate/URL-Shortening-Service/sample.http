@@ -1,0 +1,38 @@
+@protocol = http:
+@hostname = localhost
+@port = 3000
+@origin = {{protocol}}//{{hostname}}:{{port}}
+@shortCode = tJ5Xxpl
+
+### Create Short URL
+POST {{origin}}/shorten
+Content-Type: application/json
+
+{
+  "url": "https://dummyjson.com/users/1"
+}
+
+
+### Retrieve Original URL
+GET {{origin}}/shorten/{{shortCode}}
+
+
+### Update Short URL
+PUT {{origin}}/shorten/{{shortCode}}
+Content-Type: application/json
+
+{
+  "url": "https://www.dummyjson.com/posts/1"
+}
+
+
+### Delete Short URL
+DELETE {{origin}}/shorten/{{shortCode}}
+
+
+### Get URL Statistics
+GET {{origin}}/shorten/{{shortCode}}/stats
+
+
+### Redirect
+GET {{origin}}/{{shortCode}}

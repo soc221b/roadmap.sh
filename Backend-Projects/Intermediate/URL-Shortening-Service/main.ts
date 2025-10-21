@@ -5,7 +5,7 @@ import bodyParser from "body-parser";
 import z from "zod/v4";
 
 const hostname = "localhost";
-const port = 3003;
+const port = 3000;
 
 const app = express();
 app.use(bodyParser.json());
