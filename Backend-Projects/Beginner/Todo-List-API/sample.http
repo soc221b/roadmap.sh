@@ -1,0 +1,58 @@
+@protocol = http:
+@hostname = localhost
+@port = 5000
+@origin = {{protocol}}//{{hostname}}:{{port}}
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NjExMzQzMjYsInVzZXJfaWQiOjF9.NTN9DRs1oEjnTf8rWT9S2kJtJHBd_iBJDZiQrNvII60
+
+
+
+### User Registration
+POST {{origin}}/register
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "tom@doe.com",
+  "password": "password"
+}
+
+### User Login
+POST {{origin}}/login
+Content-Type: application/json
+
+{
+  "email": "tom@doe.com",
+  "password": "password"
+}
+
+### Create a To-Do Item
+POST {{origin}}/todos
+Authorization: bearer {{token}}
+Content-Type: application/json
+
+
+{
+  "title": "Buy groceries",
+  "description": "Buy milk, eggs, and bread"
+}
+
+### Update a To-Do Item
+PUT {{origin}}/todos/1
+Authorization: bearer {{token}}
+Content-Type: application/json
+
+
+{
+  "title": "Buy groceries",
+  "description": "Buy milk, eggs, bread, and cheese"
+}
+
+### Delete a To-Do Item
+DELETE {{origin}}/todos/2
+Authorization: bearer {{token}}
+
+
+### Get All To-Do Items
+GET {{origin}}/todos?page=1&limit=10
+Authorization: bearer {{token}}
+
