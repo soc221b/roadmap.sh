@@ -1,5 +1,5 @@
 from peewee import Model, SqliteDatabase, CharField, ForeignKeyField
-from models.user import User
+from app.models.user import User
 
 todos_db = SqliteDatabase('todos.db')
 
