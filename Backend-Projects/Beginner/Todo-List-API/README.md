@@ -4,8 +4,8 @@
 
 ```sh
 $ echo "SECRET=SHHHHHHHHH" >> .env
-$ virtualenv venv
-$ source venv/bin/activate
+$ virtualenv .venv
+$ source .venv/bin/activate
 $ pip3 install -r requirements.txt
 ```
 
