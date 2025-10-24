@@ -7,28 +7,30 @@ export function start() {
   wss.on("connection", (ws) => {
     ws.on("error", console.error);
 
-    ws.on("message", function message(data) {
-      wss.clients.forEach(function each(client) {
+    ws.on("message", (data) => {
+      wss.clients.forEach((client) => {
         if (client !== ws && client.readyState === WebSocket.OPEN) {
           client.send(data);
         }
       });
     });
-
-    ws.isAlive = true;
-    ws.on("pong", function heartbeat() {
-      this.isAlive = true;
-    });
   });
+
   wss.on("close", () => {
     clearInterval(interval);
   });
-
   const interval = setInterval(() => {
     wss.clients.forEach((ws) => {
-      if (ws.isAlive === false) return ws.terminate();
+      if (ws.isWaitingPong) {
+        delete ws.isWaitingPong;
+        ws.terminate();
+        return;
+      }
 
-      ws.isAlive = false;
+      ws.isWaitingPong = true;
+      ws.once("pong", function () {
+        delete this.isWaitingPong;
+      });
       ws.ping();
     });
   }, HEARTBEAT_INTERVAL / 2);
@@ -36,6 +38,6 @@ export function start() {
 
 declare module "ws" {
   interface WebSocket {
-    isAlive: boolean;
+    isWaitingPong?: true;
   }
 }

@@ -14,7 +14,7 @@ export function connect(user: string) {
 
   client.on("error", console.error);
 
-  client.on("open", async () => {
+  client.on("open", () => {
     read();
 
     function read() {
@@ -36,14 +36,14 @@ export function connect(user: string) {
     readline.moveCursor(process.stdout, query.length, -1);
   });
 
-  client.on("ping", function heartbeat() {
+  client.on("ping", function () {
     clearTimeout(this.pingTimeout);
     this.pingTimeout = setTimeout(() => {
       this.terminate();
     }, HEARTBEAT_INTERVAL);
   });
 
-  client.on("close", function clear() {
+  client.on("close", function () {
     clearTimeout(this.pingTimeout);
     console.log("\nserver terminated");
     process.exit(0);
