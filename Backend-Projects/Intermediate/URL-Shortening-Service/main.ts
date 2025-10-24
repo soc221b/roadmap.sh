@@ -109,7 +109,7 @@ app.put("/shorten/:shortCode", async (req, res) => {
     }
   );
   if (document) {
-    res.status(201);
+    res.status(200);
     res.send({
       id: document._id,
       url,
