@@ -1,4 +1,4 @@
-import { writeFileSync, readFileSync, mkdirSync, rmdirSync } from "fs";
+import { writeFileSync, readFileSync, mkdirSync, rmSync } from "fs";
 import { resolve } from "path";
 import { Cache } from "./interface.ts";
 
@@ -19,7 +19,7 @@ export class FSCache extends Cache {
   }
 
   async clear(): Promise<void> {
-    rmdirSync(this.cacheDir, { recursive: true });
+    rmSync(this.cacheDir, { recursive: true, force: true });
   }
 
   private buildPath(key: string): string {
