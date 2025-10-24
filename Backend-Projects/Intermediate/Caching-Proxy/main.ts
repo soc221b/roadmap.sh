@@ -15,37 +15,37 @@ program
   )
   .option("-c, --clear-cache", "clear the cache")
   .parse();
-const options = program.opts();
 
-const app = express();
+const options = program.opts();
 
 const cache: ICache = new FSCache();
 
-app.get("{*splat}", async (req, res) => {
-  const cached = await cache.get(req.originalUrl);
-  if (cached !== undefined) {
-    res.setHeader("X-Cache", "HIT");
-    return res.json(JSON.parse(cached));
-  }
-
-  const response = await fetch(options.origin + req.originalUrl);
-  res.setHeader("X-Cache", "MISS");
-  const text = await response.text();
-  res.json(text);
-  await cache.set(req.originalUrl, JSON.stringify(text));
-});
-
 if (options.clearCache) {
   await cache.clear();
-  process.exit(0);
-}
+} else {
+  const app = express();
 
-app.listen(options.port, "localhost", (err) => {
-  if (err) {
-    console.error(err);
-  } else {
-    console.log(
-      `Caching proxy server is running on http://localhost:${options.port}`
-    );
-  }
-});
+  app.get("{*splat}", async (req, res) => {
+    const cached = await cache.get(req.originalUrl);
+    if (cached !== undefined) {
+      res.setHeader("X-Cache", "HIT");
+      return res.json(JSON.parse(cached));
+    }
+
+    const response = await fetch(options.origin + req.originalUrl);
+    res.setHeader("X-Cache", "MISS");
+    const text = await response.text();
+    res.json(text);
+    await cache.set(req.originalUrl, JSON.stringify(text));
+  });
+
+  app.listen(options.port, "localhost", (err) => {
+    if (err) {
+      console.error(err);
+    } else {
+      console.log(
+        `Caching proxy server is running on http://localhost:${options.port}`
+      );
+    }
+  });
+}
