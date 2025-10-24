@@ -1,7 +1,7 @@
 import { program } from "commander";
 import express from "express";
-import { ICache } from "./interface.ts";
-import { FSCache } from "./fs-cache.ts";
+import { Cache } from "./interface.ts";
+import { FSCache } from "./cache.ts";
 
 program
   .option(
@@ -18,7 +18,7 @@ program
 
 const options = program.opts();
 
-const cache: ICache = new FSCache();
+const cache: Cache = new FSCache();
 
 if (options.clearCache) {
   await cache.clear();

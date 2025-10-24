@@ -1,8 +1,8 @@
 import { writeFileSync, readFileSync, mkdirSync, rmdirSync } from "fs";
 import { resolve } from "path";
-import { ICache } from "./interface.ts";
+import { Cache } from "./interface.ts";
 
-export class FSCache extends ICache {
+export class FSCache extends Cache {
   private cacheDir: string = ".cache";
 
   async set(key: string, value: string): Promise<void> {
