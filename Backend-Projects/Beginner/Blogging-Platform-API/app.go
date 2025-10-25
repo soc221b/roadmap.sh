@@ -25,14 +25,12 @@ type Post struct {
 func main() {
 	db, err := sql.Open("mysql", os.Getenv("DATABASE_URL"))
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		panic(err)
 	}
+	defer db.Close()
 
-	err = db.Ping()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+	if err = db.Ping(); err != nil {
+		panic(err)
 	}
 
 	// const query = `
