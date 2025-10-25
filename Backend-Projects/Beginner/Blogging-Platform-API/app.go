@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -14,15 +15,9 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type Post struct {
-	Id       string   `json:"id"`
-	Title    string   `json:"title"`
-	Content  string   `json:"content"`
-	Category string   `json:"category"`
-	Tags     []string `json:"tags"`
+type C struct {
+	DB *sql.DB
 }
-
-var db *sql.DB
 
 func main() {
 	db, err := sql.Open("mysql", os.Getenv("DATABASE_URL"))
@@ -50,22 +45,32 @@ func main() {
 	// 	os.Exit(1)
 	// }
 
+	c := &C{DB: db}
+
 	router := mux.NewRouter()
 
 	routerPosts := router.PathPrefix("/posts").Subrouter()
-	routerPosts.HandleFunc("", PostHandler).Methods("POST")
-	routerPosts.HandleFunc("/{id}", PutHandler).Methods("PUT")
-	routerPosts.HandleFunc("/{id}", DeleteHandler).Methods("DELETE")
-	routerPosts.HandleFunc("/{id}", GetHandler).Methods("GET")
-	routerPosts.HandleFunc("", GetAllHandler).Methods("GET")
+	routerPosts.HandleFunc("", c.PostHandler).Methods("POST")
+	routerPosts.HandleFunc("/{id}", c.PutHandler).Methods("PUT")
+	routerPosts.HandleFunc("/{id}", c.DeleteHandler).Methods("DELETE")
+	routerPosts.HandleFunc("/{id}", c.GetHandler).Methods("GET")
+	routerPosts.HandleFunc("", c.GetAllHandler).Methods("GET")
 
 	http.ListenAndServe(":8080", router)
 }
 
-func PostHandler(w http.ResponseWriter, r *http.Request) {
+type Post struct {
+	Id       int      `json:"id"`
+	Title    string   `json:"title"`
+	Content  string   `json:"content"`
+	Category string   `json:"category"`
+	Tags     []string `json:"tags"`
+}
+
+func (c *C) PostHandler(w http.ResponseWriter, r *http.Request) {
 	post := Post{}
 	json.NewDecoder(r.Body).Decode(&post)
-	result, err := db.Exec(`INSERT INTO posts (title, content, category, tags) VALUES (?, ?, ?, ?)`, post.Title, post.Content, post.Category, strings.Join(post.Tags, " "))
+	result, err := c.DB.Exec(`INSERT INTO posts (title, content, category, tags) VALUES (?, ?, ?, ?)`, post.Title, post.Content, post.Category, strings.Join(post.Tags, " "))
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -80,46 +85,95 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	created := struct {
-		Id int64 `json:"id"`
+		Id       int64    `json:"id"`
+		Title    string   `json:"title"`
+		Content  string   `json:"content"`
+		Category string   `json:"category"`
+		Tags     []string `json:"tags"`
 	}{
-		Id: id,
+		Id:       id,
+		Title:    post.Title,
+		Content:  post.Content,
+		Category: post.Category,
+		Tags:     post.Tags,
 	}
 	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(created)
 }
 
-func PutHandler(w http.ResponseWriter, r *http.Request) {
+func (c *C) PutHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		if errors.Is(err, strconv.ErrSyntax) {
+			w.WriteHeader(http.StatusBadRequest)
+		} else {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		return
+	}
+
 	post := Post{}
 	json.NewDecoder(r.Body).Decode(&post)
-	_, err := db.Exec(`UPDATE posts SET title = ?, content = ?, category = ?, tags = ? WHERE id = ?`, post.Title, post.Content, post.Category, strings.Join(post.Tags, " "), mux.Vars(r)["id"])
+	_, err = c.DB.Exec(`UPDATE posts SET title = ?, content = ?, category = ?, tags = ? WHERE id = ?`, post.Title, post.Content, post.Category, strings.Join(post.Tags, " "), id)
 	if err != nil {
-		fmt.Println(err)
-		w.WriteHeader(http.StatusBadRequest)
+		if errors.Is(err, sql.ErrNoRows) {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 }
 
-func DeleteHandler(w http.ResponseWriter, r *http.Request) {
-	_, err := db.Exec(`DELETE FROM posts WHERE id = ?`, mux.Vars(r)["id"])
+func (c *C) DeleteHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
-		fmt.Println(err)
-		w.WriteHeader(http.StatusBadRequest)
+		if errors.Is(err, strconv.ErrSyntax) {
+			w.WriteHeader(http.StatusBadRequest)
+		} else {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		return
+	}
+
+	_, err = c.DB.Exec(`DELETE FROM posts WHERE id = ?`, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 		return
 	}
 
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func GetHandler(w http.ResponseWriter, r *http.Request) {
+func (c *C) GetHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		if errors.Is(err, strconv.ErrSyntax) {
+			w.WriteHeader(http.StatusBadRequest)
+		} else {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		return
+	}
+
 	post := Post{}
 	tags := ""
-	row := db.QueryRow("SELECT id, title, content, category, tags FROM posts WHERE id = ?", mux.Vars(r)["id"])
+	row := c.DB.QueryRow("SELECT id, title, content, category, tags FROM posts WHERE id = ?", id)
 	if err := row.Scan(&post.Id, &post.Title, &post.Content, &post.Category, &tags); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			w.WriteHeader(404)
+			w.WriteHeader(http.StatusNotFound)
 		} else {
 			fmt.Println(err)
 			w.WriteHeader(http.StatusBadRequest)
@@ -131,13 +185,14 @@ func GetHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(post)
 }
-func GetAllHandler(w http.ResponseWriter, r *http.Request) {
+
+func (c *C) GetAllHandler(w http.ResponseWriter, r *http.Request) {
 	term := "%" + r.URL.Query().Get("term") + "%"
 
-	rows, err := db.Query("SELECT id, title, content, category, tags FROM posts WHERE title LIKE ? OR category LIKE ? OR tags LIKE ?", term, term, term)
+	rows, err := c.DB.Query("SELECT id, title, content, category, tags FROM posts WHERE title LIKE ? OR category LIKE ? OR tags LIKE ?", term, term, term)
 	if err != nil {
 		fmt.Println(err)
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
