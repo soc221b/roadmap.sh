@@ -9,6 +9,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 
@@ -26,24 +27,32 @@ func main() {
 	}
 	defer db.Close()
 
-	if err = db.Ping(); err != nil {
-		panic(err)
+	retryTimes := 0
+	for {
+		err = db.Ping()
+		if err == nil {
+			break
+		} else if retryTimes < 10 {
+			time.Sleep(5 * time.Second)
+			retryTimes++
+		} else {
+			panic(err)
+		}
 	}
 
-	// const query = `
-	// CREATE TABLE posts (
-	// 		id INT AUTO_INCREMENT,
-	// 		title TEXT NOT NULL,
-	// 		content TEXT NOT NULL,
-	// 		category TEXT NOT NULL,
-	// 		tags TEXT NOT NULL,
-	// 		PRIMARY KEY (id)
-	// );`
-	// _, err = db.Exec(query)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	os.Exit(1)
-	// }
+	const query = `
+	CREATE TABLE posts (
+			id INT AUTO_INCREMENT,
+			title TEXT NOT NULL,
+			content TEXT NOT NULL,
+			category TEXT NOT NULL,
+			tags TEXT NOT NULL,
+			PRIMARY KEY (id)
+	);`
+	_, err = db.Exec(query)
+	if err != nil {
+		fmt.Println("table already exists, skip")
+	}
 
 	c := &C{DB: db}
 
@@ -56,6 +65,7 @@ func main() {
 	routerPosts.HandleFunc("/{id}", c.GetHandler).Methods("GET")
 	routerPosts.HandleFunc("", c.GetAllHandler).Methods("GET")
 
+	fmt.Println("Server listening on Port 8080")
 	http.ListenAndServe(":8080", router)
 }
 

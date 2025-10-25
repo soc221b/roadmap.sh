@@ -1,0 +1,25 @@
+services:
+  server:
+    build: .
+    environment:
+      - DATABASE_URL=root:@tcp(host.docker.internal:3306)/db
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+
+  db:
+    container_name: db
+    image: mysql:9.5.0-oraclelinux9
+    restart: always
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=1
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 1s
+      retries: 30
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/start.sql
