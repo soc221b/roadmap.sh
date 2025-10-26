@@ -1,5 +1,21 @@
 # README
 
+## Flow
+
+```mermaid
+sequenceDiagram
+    Client->>API: Fetch data
+    API->>Redis: Check cache
+    alt miss
+    API->>Service: Request
+    Service->>API: Response
+    API->>Redis: Set cache
+    else hit
+    Redis->>API: Get cache
+    end
+    API->>Client: Response data
+```
+
 ## Getting Started
 
 ```sh
