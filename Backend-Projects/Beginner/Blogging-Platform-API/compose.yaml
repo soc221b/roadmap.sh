@@ -2,7 +2,7 @@ services:
   server:
     build: .
     environment:
-      - DATABASE_URL=root:@tcp(host.docker.internal:3306)/db
+      - DATA_SOURCE_NAME=root:@tcp(host.docker.internal:3306)/db
     depends_on:
       db:
         condition: service_healthy

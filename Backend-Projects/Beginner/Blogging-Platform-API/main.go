@@ -19,7 +19,7 @@ type C struct {
 }
 
 func main() {
-	db, err := sql.Open("mysql", os.Getenv("DATABASE_URL"))
+	db, err := sql.Open("mysql", os.Getenv("DATA_SOURCE_NAME"))
 	if err != nil {
 		panic(err)
 	}
