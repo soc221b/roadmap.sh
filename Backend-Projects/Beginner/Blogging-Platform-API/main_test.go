@@ -94,7 +94,7 @@ func TestApp(t *testing.T) {
 			sqlMock: func(mock sqlmock.Sqlmock) {
 				mock.ExpectExec("UPDATE posts SET title = \\?, content = \\?, category = \\?, tags = \\? WHERE id = \\?").
 					WithArgs("My Updated Blog Post", "This is the updated content of my first blog post.", "Tech", "Programming Tech", 1).
-					WillReturnError(sql.ErrNoRows)
+					WillReturnResult(sqlmock.NewResult(0, 0))
 			},
 			method: "PUT",
 			url:    "/posts/1",
@@ -136,7 +136,7 @@ func TestApp(t *testing.T) {
 			sqlMock: func(mock sqlmock.Sqlmock) {
 				mock.ExpectExec("DELETE FROM posts WHERE id = ?").
 					WithArgs(1).
-					WillReturnError(sql.ErrNoRows)
+					WillReturnResult(sqlmock.NewResult(0, 0))
 			},
 			method:       "DELETE",
 			url:          "/posts/1",

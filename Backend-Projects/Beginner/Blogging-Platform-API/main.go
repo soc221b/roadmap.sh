@@ -125,14 +125,18 @@ func (c *C) PutHandler(w http.ResponseWriter, r *http.Request) {
 
 	post := Post{}
 	json.NewDecoder(r.Body).Decode(&post)
-	_, err = c.DB.Exec(`UPDATE posts SET title = ?, content = ?, category = ?, tags = ? WHERE id = ?`, post.Title, post.Content, post.Category, strings.Join(post.Tags, " "), id)
+	result, err := c.DB.Exec(`UPDATE posts SET title = ?, content = ?, category = ?, tags = ? WHERE id = ?`, post.Title, post.Content, post.Category, strings.Join(post.Tags, " "), id)
+	if numberOfRows, err := result.RowsAffected(); err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	} else if numberOfRows == 0 {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			w.WriteHeader(http.StatusNotFound)
-		} else {
-			fmt.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
-		}
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -151,14 +155,18 @@ func (c *C) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = c.DB.Exec(`DELETE FROM posts WHERE id = ?`, id)
+	result, err := c.DB.Exec(`DELETE FROM posts WHERE id = ?`, id)
+	if numberOfRows, err := result.RowsAffected(); err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	} else if numberOfRows == 0 {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			w.WriteHeader(http.StatusNotFound)
-		} else {
-			fmt.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
-		}
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
