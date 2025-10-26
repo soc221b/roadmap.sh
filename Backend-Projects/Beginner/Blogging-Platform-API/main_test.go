@@ -10,14 +10,11 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/gorilla/mux"
 )
 
 type Test struct {
 	title             string
 	sqlMock           func(DBMock sqlmock.Sqlmock)
-	getHandler        func(c *C) func(http.ResponseWriter, *http.Request)
-	setVar            func(r *http.Request) *http.Request
 	method            string
 	url               string
 	body              any
@@ -32,9 +29,6 @@ func TestApp(t *testing.T) {
 			title: "CreateBlogPost201",
 			sqlMock: func(mock sqlmock.Sqlmock) {
 				mock.ExpectExec("INSERT INTO posts").WithArgs("My First Blog Post", "This is the content of my first blog post.", "Technology", "Tech Programming").WillReturnResult(sqlmock.NewResult(1, 1))
-			},
-			getHandler: func(c *C) func(http.ResponseWriter, *http.Request) {
-				return c.PostHandler
 			},
 			method: "POST",
 			url:    "/posts",
@@ -61,12 +55,6 @@ func TestApp(t *testing.T) {
 					WithArgs("My Updated Blog Post", "This is the updated content of my first blog post.", "Tech", "Programming Tech", 1).
 					WillReturnResult(sqlmock.NewResult(0, 1))
 			},
-			getHandler: func(c *C) func(http.ResponseWriter, *http.Request) {
-				return c.PutHandler
-			},
-			setVar: func(r *http.Request) *http.Request {
-				return mux.SetURLVars(r, map[string]string{"id": "1"})
-			},
 			method: "PUT",
 			url:    "/posts/1",
 			body: struct {
@@ -84,15 +72,9 @@ func TestApp(t *testing.T) {
 		},
 
 		{
-			title: "UpdateBlogPost400",
-			getHandler: func(c *C) func(http.ResponseWriter, *http.Request) {
-				return c.PutHandler
-			},
-			setVar: func(r *http.Request) *http.Request {
-				return mux.SetURLVars(r, map[string]string{"id": "abc"})
-			},
+			title:  "UpdateBlogPost400",
 			method: "PUT",
-			url:    "/posts/1",
+			url:    "/posts/abc",
 			body: struct {
 				Title    string   `json:"title"`
 				Content  string   `json:"content"`
@@ -113,12 +95,6 @@ func TestApp(t *testing.T) {
 				mock.ExpectExec("UPDATE posts SET title = \\?, content = \\?, category = \\?, tags = \\? WHERE id = \\?").
 					WithArgs("My Updated Blog Post", "This is the updated content of my first blog post.", "Tech", "Programming Tech", 1).
 					WillReturnError(sql.ErrNoRows)
-			},
-			getHandler: func(c *C) func(http.ResponseWriter, *http.Request) {
-				return c.PutHandler
-			},
-			setVar: func(r *http.Request) *http.Request {
-				return mux.SetURLVars(r, map[string]string{"id": "1"})
 			},
 			method: "PUT",
 			url:    "/posts/1",
@@ -143,27 +119,15 @@ func TestApp(t *testing.T) {
 					WithArgs(1).
 					WillReturnResult(sqlmock.NewResult(0, 1))
 			},
-			getHandler: func(c *C) func(http.ResponseWriter, *http.Request) {
-				return c.DeleteHandler
-			},
-			setVar: func(r *http.Request) *http.Request {
-				return mux.SetURLVars(r, map[string]string{"id": "1"})
-			},
 			method:       "DELETE",
 			url:          "/posts/1",
 			expectStatus: 204,
 		},
 
 		{
-			title: "DeleteBlogPost400",
-			getHandler: func(c *C) func(http.ResponseWriter, *http.Request) {
-				return c.DeleteHandler
-			},
-			setVar: func(r *http.Request) *http.Request {
-				return mux.SetURLVars(r, map[string]string{"id": "abc"})
-			},
+			title:        "DeleteBlogPost400",
 			method:       "DELETE",
-			url:          "/posts/1",
+			url:          "/posts/abc",
 			expectStatus: 400,
 		},
 
@@ -173,12 +137,6 @@ func TestApp(t *testing.T) {
 				mock.ExpectExec("DELETE FROM posts WHERE id = ?").
 					WithArgs(1).
 					WillReturnError(sql.ErrNoRows)
-			},
-			getHandler: func(c *C) func(http.ResponseWriter, *http.Request) {
-				return c.DeleteHandler
-			},
-			setVar: func(r *http.Request) *http.Request {
-				return mux.SetURLVars(r, map[string]string{"id": "1"})
 			},
 			method:       "DELETE",
 			url:          "/posts/1",
@@ -194,12 +152,6 @@ func TestApp(t *testing.T) {
 						AddRow(1, "My First Blog Post", "This is the content of my first blog post.", "Technology", "Tech Programming"),
 				)
 			},
-			getHandler: func(c *C) func(http.ResponseWriter, *http.Request) {
-				return c.GetHandler
-			},
-			setVar: func(r *http.Request) *http.Request {
-				return mux.SetURLVars(r, map[string]string{"id": "1"})
-			},
 			method:            "GET",
 			url:               "/posts/1",
 			expectStatus:      200,
@@ -208,15 +160,9 @@ func TestApp(t *testing.T) {
 		},
 
 		{
-			title: "GetBlogPost400",
-			getHandler: func(c *C) func(http.ResponseWriter, *http.Request) {
-				return c.GetHandler
-			},
-			setVar: func(r *http.Request) *http.Request {
-				return mux.SetURLVars(r, map[string]string{"id": "abc"})
-			},
+			title:        "GetBlogPost400",
 			method:       "GET",
-			url:          "/posts/1",
+			url:          "/posts/abc",
 			expectStatus: 400,
 		},
 
@@ -226,12 +172,6 @@ func TestApp(t *testing.T) {
 				mock.ExpectQuery("SELECT id, title, content, category, tags FROM posts WHERE id = ?").
 					WithArgs(1).
 					WillReturnError(sql.ErrNoRows)
-			},
-			getHandler: func(c *C) func(http.ResponseWriter, *http.Request) {
-				return c.GetHandler
-			},
-			setVar: func(r *http.Request) *http.Request {
-				return mux.SetURLVars(r, map[string]string{"id": "1"})
 			},
 			method:       "GET",
 			url:          "/posts/1",
@@ -248,9 +188,6 @@ func TestApp(t *testing.T) {
 						AddRow(2, "My Second Blog Post", "This is the content of my second blog post.", "Technology", "Tech Programming"),
 				)
 			},
-			getHandler: func(c *C) func(http.ResponseWriter, *http.Request) {
-				return c.GetAllHandler
-			},
 			method:            "GET",
 			url:               "/posts",
 			expectStatus:      200,
@@ -266,9 +203,6 @@ func TestApp(t *testing.T) {
 					sqlmock.NewRows([]string{"id", "title", "content", "category", "tags"}).
 						AddRow(2, "My Second Blog Post", "This is the content of my second blog post.", "Technology", "Tech Programming"),
 				)
-			},
-			getHandler: func(c *C) func(http.ResponseWriter, *http.Request) {
-				return c.GetAllHandler
 			},
 			method:            "GET",
 			url:               "/posts?term=Second",
@@ -296,6 +230,8 @@ func run(t *testing.T, test Test) {
 	if test.sqlMock != nil {
 		test.sqlMock(DBMock)
 	}
+	http.DefaultServeMux = new(http.ServeMux)
+	RegisterHandlers(c)
 
 	// act
 	out, err := json.Marshal(test.body)
@@ -306,12 +242,8 @@ func run(t *testing.T, test Test) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if test.setVar != nil {
-		req = test.setVar(req)
-	}
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(test.getHandler(c))
-	handler.ServeHTTP(rr, req)
+	http.DefaultServeMux.ServeHTTP(rr, req)
 
 	// assert
 	if actualStatus := rr.Code; actualStatus != test.expectStatus {

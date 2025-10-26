@@ -12,8 +12,6 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
-
-	"github.com/gorilla/mux"
 )
 
 type C struct {
@@ -56,17 +54,18 @@ func main() {
 
 	c := &C{DB: db}
 
-	router := mux.NewRouter()
-
-	routerPosts := router.PathPrefix("/posts").Subrouter()
-	routerPosts.HandleFunc("", c.PostHandler).Methods("POST")
-	routerPosts.HandleFunc("/{id}", c.PutHandler).Methods("PUT")
-	routerPosts.HandleFunc("/{id}", c.DeleteHandler).Methods("DELETE")
-	routerPosts.HandleFunc("/{id}", c.GetHandler).Methods("GET")
-	routerPosts.HandleFunc("", c.GetAllHandler).Methods("GET")
+	RegisterHandlers(c)
 
 	fmt.Println("Server listening on Port 8080")
-	http.ListenAndServe(":8080", router)
+	http.ListenAndServe(":8080", nil)
+}
+
+func RegisterHandlers(c *C) {
+	http.HandleFunc("POST /posts", c.PostHandler)
+	http.HandleFunc("PUT /posts/{id}", c.PutHandler)
+	http.HandleFunc("DELETE /posts/{id}", c.DeleteHandler)
+	http.HandleFunc("GET /posts/{id}", c.GetHandler)
+	http.HandleFunc("GET /posts", c.GetAllHandler)
 }
 
 type Post struct {
@@ -113,7 +112,7 @@ func (c *C) PostHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *C) PutHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		if errors.Is(err, strconv.ErrSyntax) {
 			w.WriteHeader(http.StatusBadRequest)
@@ -141,7 +140,7 @@ func (c *C) PutHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *C) DeleteHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		if errors.Is(err, strconv.ErrSyntax) {
 			w.WriteHeader(http.StatusBadRequest)
@@ -167,7 +166,7 @@ func (c *C) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *C) GetHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		if errors.Is(err, strconv.ErrSyntax) {
 			w.WriteHeader(http.StatusBadRequest)
