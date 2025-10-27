@@ -212,6 +212,7 @@ func TestApp(t *testing.T) {
 		},
 	}
 
+	RegisterHandlers()
 	for _, test := range tests {
 		t.Run(test.title, func(t *testing.T) {
 			run(t, test)
@@ -226,12 +227,10 @@ func run(t *testing.T, test Test) {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
 	defer DB.Close()
-	c := &C{DB: DB}
+	SL.Load(DB)
 	if test.sqlMock != nil {
 		test.sqlMock(DBMock)
 	}
-	http.DefaultServeMux = new(http.ServeMux)
-	RegisterHandlers(c)
 
 	// act
 	out, err := json.Marshal(test.body)

@@ -14,20 +14,30 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-type C struct {
+type ServiceLocator struct {
 	DB *sql.DB
 }
 
+func (SL *ServiceLocator) Load(value any) {
+	switch v := value.(type) {
+	case *sql.DB:
+		SL.DB = v
+	}
+}
+
+var SL = ServiceLocator{}
+
 func main() {
-	db, err := sql.Open("mysql", os.Getenv("DATA_SOURCE_NAME"))
+	DB, err := sql.Open("mysql", os.Getenv("DATA_SOURCE_NAME"))
 	if err != nil {
 		panic(err)
 	}
-	defer db.Close()
+	defer DB.Close()
+	SL.Load(DB)
 
 	retryTimes := 0
 	for {
-		err = db.Ping()
+		err = DB.Ping()
 		if err == nil {
 			break
 		} else if retryTimes < 10 {
@@ -47,25 +57,23 @@ func main() {
 			tags TEXT NOT NULL,
 			PRIMARY KEY (id)
 	);`
-	_, err = db.Exec(query)
+	_, err = DB.Exec(query)
 	if err != nil {
 		fmt.Println("table already exists, skip")
 	}
 
-	c := &C{DB: db}
-
-	RegisterHandlers(c)
+	RegisterHandlers()
 
 	fmt.Println("Server listening on Port 8080")
 	http.ListenAndServe(":8080", nil)
 }
 
-func RegisterHandlers(c *C) {
-	http.HandleFunc("POST /posts", c.PostHandler)
-	http.HandleFunc("PUT /posts/{id}", c.PutHandler)
-	http.HandleFunc("DELETE /posts/{id}", c.DeleteHandler)
-	http.HandleFunc("GET /posts/{id}", c.GetHandler)
-	http.HandleFunc("GET /posts", c.GetAllHandler)
+func RegisterHandlers() {
+	http.HandleFunc("POST /posts", PostHandler)
+	http.HandleFunc("PUT /posts/{id}", PutHandler)
+	http.HandleFunc("DELETE /posts/{id}", DeleteHandler)
+	http.HandleFunc("GET /posts/{id}", GetHandler)
+	http.HandleFunc("GET /posts", GetAllHandler)
 }
 
 type Post struct {
@@ -76,10 +84,10 @@ type Post struct {
 	Tags     []string `json:"tags"`
 }
 
-func (c *C) PostHandler(w http.ResponseWriter, r *http.Request) {
+func PostHandler(w http.ResponseWriter, r *http.Request) {
 	post := Post{}
 	json.NewDecoder(r.Body).Decode(&post)
-	result, err := c.DB.Exec(`INSERT INTO posts (title, content, category, tags) VALUES (?, ?, ?, ?)`, post.Title, post.Content, post.Category, strings.Join(post.Tags, " "))
+	result, err := SL.DB.Exec(`INSERT INTO posts (title, content, category, tags) VALUES (?, ?, ?, ?)`, post.Title, post.Content, post.Category, strings.Join(post.Tags, " "))
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -111,7 +119,7 @@ func (c *C) PostHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(created)
 }
 
-func (c *C) PutHandler(w http.ResponseWriter, r *http.Request) {
+func PutHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		if errors.Is(err, strconv.ErrSyntax) {
@@ -125,7 +133,7 @@ func (c *C) PutHandler(w http.ResponseWriter, r *http.Request) {
 
 	post := Post{}
 	json.NewDecoder(r.Body).Decode(&post)
-	result, err := c.DB.Exec(`UPDATE posts SET title = ?, content = ?, category = ?, tags = ? WHERE id = ?`, post.Title, post.Content, post.Category, strings.Join(post.Tags, " "), id)
+	result, err := SL.DB.Exec(`UPDATE posts SET title = ?, content = ?, category = ?, tags = ? WHERE id = ?`, post.Title, post.Content, post.Category, strings.Join(post.Tags, " "), id)
 	if numberOfRows, err := result.RowsAffected(); err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -143,7 +151,7 @@ func (c *C) PutHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (c *C) DeleteHandler(w http.ResponseWriter, r *http.Request) {
+func DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		if errors.Is(err, strconv.ErrSyntax) {
@@ -155,7 +163,7 @@ func (c *C) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := c.DB.Exec(`DELETE FROM posts WHERE id = ?`, id)
+	result, err := SL.DB.Exec(`DELETE FROM posts WHERE id = ?`, id)
 	if numberOfRows, err := result.RowsAffected(); err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -173,7 +181,7 @@ func (c *C) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (c *C) GetHandler(w http.ResponseWriter, r *http.Request) {
+func GetHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		if errors.Is(err, strconv.ErrSyntax) {
@@ -187,7 +195,7 @@ func (c *C) GetHandler(w http.ResponseWriter, r *http.Request) {
 
 	post := Post{}
 	tags := ""
-	row := c.DB.QueryRow("SELECT id, title, content, category, tags FROM posts WHERE id = ?", id)
+	row := SL.DB.QueryRow("SELECT id, title, content, category, tags FROM posts WHERE id = ?", id)
 	if err := row.Scan(&post.Id, &post.Title, &post.Content, &post.Category, &tags); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			w.WriteHeader(http.StatusNotFound)
@@ -203,10 +211,10 @@ func (c *C) GetHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(post)
 }
 
-func (c *C) GetAllHandler(w http.ResponseWriter, r *http.Request) {
+func GetAllHandler(w http.ResponseWriter, r *http.Request) {
 	term := "%" + r.URL.Query().Get("term") + "%"
 
-	rows, err := c.DB.Query("SELECT id, title, content, category, tags FROM posts WHERE title LIKE ? OR category LIKE ? OR tags LIKE ?", term, term, term)
+	rows, err := SL.DB.Query("SELECT id, title, content, category, tags FROM posts WHERE title LIKE ? OR category LIKE ? OR tags LIKE ?", term, term, term)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
