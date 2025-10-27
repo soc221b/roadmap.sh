@@ -4,7 +4,7 @@
 | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------ |
 | [Blogging Platform API](https://roadmap.sh/projects/blogging-platform-api)   | [Source Code](./Backend-Projects/Beginner/Blogging-Platform-API/)      | `Go`, `CRUD`, `MySQL`, `Testing`, `Containerize` |
 | [Todo List API](https://roadmap.sh/projects/todo-list-api)                   | [Source Code](./Backend-Projects/Beginner/Todo-List-API/)              | `Python`, `Flask`, `E2E test`                    |
-| [Broadcast Server](https://roadmap.sh/projects/broadcast-server)             | [Source Code](./Backend-Projects/Intermediate/Broadcast-Server/)       | `Node.js`, `WebSocket`                           |
+| [Broadcast Server](https://roadmap.sh/projects/broadcast-server)             | [Source Code](./Backend-Projects/Intermediate/Broadcast-Server/)       | `Node.js`, `Go`, `WebSocket`                     |
 | [Caching Proxy](https://roadmap.sh/projects/caching-server)                  | [Source Code](./Backend-Projects/Intermediate/Caching-Proxy/)          | `Node.js`, `CLI`, `Express.js`                   |
 | [GitHub User Activity](https://roadmap.sh/projects/github-user-activity)     | [Source Code](./Backend-Projects/Beginner/GitHub-User-Activity/)       | `Node.js`, `CLI`, `API Consumption`              |
 | [Personal Blog](https://roadmap.sh/projects/personal-blog)                   | [Source Code](./Backend-Projects/Beginner/Personal-Blog/)              | `Node.js`, `Authentication`, `ORM`               |
