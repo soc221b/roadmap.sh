@@ -14,7 +14,7 @@ import (
 
 type Test struct {
 	title             string
-	sqlMock           func(DBMock sqlmock.Sqlmock)
+	expectSql         func(DBMock sqlmock.Sqlmock)
 	method            string
 	url               string
 	body              any
@@ -26,10 +26,7 @@ type Test struct {
 func TestApp(t *testing.T) {
 	var tests = []Test{
 		{
-			title: "CreateBlogPost201",
-			sqlMock: func(mock sqlmock.Sqlmock) {
-				mock.ExpectExec("INSERT INTO posts").WithArgs("My First Blog Post", "This is the content of my first blog post.", "Technology", "Tech Programming").WillReturnResult(sqlmock.NewResult(1, 1))
-			},
+			title:  "CreateBlogPost201",
 			method: "POST",
 			url:    "/posts",
 			body: struct {
@@ -46,15 +43,13 @@ func TestApp(t *testing.T) {
 			expectStatus:      201,
 			expectContentType: "application/json",
 			expectBody:        `{"id":1,"title":"My First Blog Post","content":"This is the content of my first blog post.","category":"Technology","tags":["Tech","Programming"]}`,
+			expectSql: func(DBMock sqlmock.Sqlmock) {
+				DBMock.ExpectExec("INSERT INTO posts").WithArgs("My First Blog Post", "This is the content of my first blog post.", "Technology", "Tech Programming").WillReturnResult(sqlmock.NewResult(1, 1))
+			},
 		},
 
 		{
-			title: "UpdateBlogPost200",
-			sqlMock: func(mock sqlmock.Sqlmock) {
-				mock.ExpectExec("UPDATE posts SET title = \\?, content = \\?, category = \\?, tags = \\? WHERE id = \\?").
-					WithArgs("My Updated Blog Post", "This is the updated content of my first blog post.", "Tech", "Programming Tech", 1).
-					WillReturnResult(sqlmock.NewResult(0, 1))
-			},
+			title:  "UpdateBlogPost200",
 			method: "PUT",
 			url:    "/posts/1",
 			body: struct {
@@ -69,6 +64,11 @@ func TestApp(t *testing.T) {
 				Tags:     []string{"Programming", "Tech"},
 			},
 			expectStatus: 200,
+			expectSql: func(DBMock sqlmock.Sqlmock) {
+				DBMock.ExpectExec("UPDATE posts SET title = \\?, content = \\?, category = \\?, tags = \\? WHERE id = \\?").
+					WithArgs("My Updated Blog Post", "This is the updated content of my first blog post.", "Tech", "Programming Tech", 1).
+					WillReturnResult(sqlmock.NewResult(0, 1))
+			},
 		},
 
 		{
@@ -90,12 +90,7 @@ func TestApp(t *testing.T) {
 		},
 
 		{
-			title: "UpdateBlogPost404",
-			sqlMock: func(mock sqlmock.Sqlmock) {
-				mock.ExpectExec("UPDATE posts SET title = \\?, content = \\?, category = \\?, tags = \\? WHERE id = \\?").
-					WithArgs("My Updated Blog Post", "This is the updated content of my first blog post.", "Tech", "Programming Tech", 1).
-					WillReturnResult(sqlmock.NewResult(0, 0))
-			},
+			title:  "UpdateBlogPost404",
 			method: "PUT",
 			url:    "/posts/1",
 			body: struct {
@@ -110,18 +105,23 @@ func TestApp(t *testing.T) {
 				Tags:     []string{"Programming", "Tech"},
 			},
 			expectStatus: 404,
+			expectSql: func(DBMock sqlmock.Sqlmock) {
+				DBMock.ExpectExec("UPDATE posts SET title = \\?, content = \\?, category = \\?, tags = \\? WHERE id = \\?").
+					WithArgs("My Updated Blog Post", "This is the updated content of my first blog post.", "Tech", "Programming Tech", 1).
+					WillReturnResult(sqlmock.NewResult(0, 0))
+			},
 		},
 
 		{
-			title: "DeleteBlogPost204",
-			sqlMock: func(mock sqlmock.Sqlmock) {
-				mock.ExpectExec("DELETE FROM posts WHERE id = ?").
-					WithArgs(1).
-					WillReturnResult(sqlmock.NewResult(0, 1))
-			},
+			title:        "DeleteBlogPost204",
 			method:       "DELETE",
 			url:          "/posts/1",
 			expectStatus: 204,
+			expectSql: func(DBMock sqlmock.Sqlmock) {
+				DBMock.ExpectExec("DELETE FROM posts WHERE id = ?").
+					WithArgs(1).
+					WillReturnResult(sqlmock.NewResult(0, 1))
+			},
 		},
 
 		{
@@ -132,31 +132,31 @@ func TestApp(t *testing.T) {
 		},
 
 		{
-			title: "DeleteBlogPost404",
-			sqlMock: func(mock sqlmock.Sqlmock) {
-				mock.ExpectExec("DELETE FROM posts WHERE id = ?").
-					WithArgs(1).
-					WillReturnResult(sqlmock.NewResult(0, 0))
-			},
+			title:        "DeleteBlogPost404",
 			method:       "DELETE",
 			url:          "/posts/1",
 			expectStatus: 404,
+			expectSql: func(DBMock sqlmock.Sqlmock) {
+				DBMock.ExpectExec("DELETE FROM posts WHERE id = ?").
+					WithArgs(1).
+					WillReturnResult(sqlmock.NewResult(0, 0))
+			},
 		},
 
 		{
-			title: "GetBlogPost200",
-			sqlMock: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery("SELECT id, title, content, category, tags FROM posts WHERE id =").
-					WithArgs(1).WillReturnRows(
-					sqlmock.NewRows([]string{"id", "title", "content", "category", "tags"}).
-						AddRow(1, "My First Blog Post", "This is the content of my first blog post.", "Technology", "Tech Programming"),
-				)
-			},
+			title:             "GetBlogPost200",
 			method:            "GET",
 			url:               "/posts/1",
 			expectStatus:      200,
 			expectContentType: "application/json",
 			expectBody:        `{"id":1,"title":"My First Blog Post","content":"This is the content of my first blog post.","category":"Technology","tags":["Tech","Programming"]}`,
+			expectSql: func(DBMock sqlmock.Sqlmock) {
+				DBMock.ExpectQuery("SELECT id, title, content, category, tags FROM posts WHERE id =").
+					WithArgs(1).WillReturnRows(
+					sqlmock.NewRows([]string{"id", "title", "content", "category", "tags"}).
+						AddRow(1, "My First Blog Post", "This is the content of my first blog post.", "Technology", "Tech Programming"),
+				)
+			},
 		},
 
 		{
@@ -167,48 +167,48 @@ func TestApp(t *testing.T) {
 		},
 
 		{
-			title: "GetBlogPost404",
-			sqlMock: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery("SELECT id, title, content, category, tags FROM posts WHERE id = ?").
-					WithArgs(1).
-					WillReturnError(sql.ErrNoRows)
-			},
+			title:        "GetBlogPost404",
 			method:       "GET",
 			url:          "/posts/1",
 			expectStatus: 404,
+			expectSql: func(DBMock sqlmock.Sqlmock) {
+				DBMock.ExpectQuery("SELECT id, title, content, category, tags FROM posts WHERE id = ?").
+					WithArgs(1).
+					WillReturnError(sql.ErrNoRows)
+			},
 		},
 
 		{
-			title: "GetAllBlogPosts200",
-			sqlMock: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery("SELECT id, title, content, category, tags FROM posts WHERE title LIKE \\? OR category LIKE \\? OR tags LIKE \\?").
+			title:             "GetAllBlogPosts200",
+			method:            "GET",
+			url:               "/posts",
+			expectStatus:      200,
+			expectContentType: "application/json",
+			expectBody:        `[{"id":1,"title":"My First Blog Post","content":"This is the content of my first blog post.","category":"Technology","tags":["Tech","Programming"]},{"id":2,"title":"My Second Blog Post","content":"This is the content of my second blog post.","category":"Technology","tags":["Tech","Programming"]}]`,
+			expectSql: func(DBMock sqlmock.Sqlmock) {
+				DBMock.ExpectQuery("SELECT id, title, content, category, tags FROM posts WHERE title LIKE \\? OR category LIKE \\? OR tags LIKE \\?").
 					WithArgs("%%", "%%", "%%").WillReturnRows(
 					sqlmock.NewRows([]string{"id", "title", "content", "category", "tags"}).
 						AddRow(1, "My First Blog Post", "This is the content of my first blog post.", "Technology", "Tech Programming").
 						AddRow(2, "My Second Blog Post", "This is the content of my second blog post.", "Technology", "Tech Programming"),
 				)
 			},
-			method:            "GET",
-			url:               "/posts",
-			expectStatus:      200,
-			expectContentType: "application/json",
-			expectBody:        `[{"id":1,"title":"My First Blog Post","content":"This is the content of my first blog post.","category":"Technology","tags":["Tech","Programming"]},{"id":2,"title":"My Second Blog Post","content":"This is the content of my second blog post.","category":"Technology","tags":["Tech","Programming"]}]`,
 		},
 
 		{
-			title: "GetAllBlogPosts200 filter by term",
-			sqlMock: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery("SELECT id, title, content, category, tags FROM posts WHERE title LIKE \\? OR category LIKE \\? OR tags LIKE \\?").
-					WithArgs("%Second%", "%Second%", "%Second%").WillReturnRows(
-					sqlmock.NewRows([]string{"id", "title", "content", "category", "tags"}).
-						AddRow(2, "My Second Blog Post", "This is the content of my second blog post.", "Technology", "Tech Programming"),
-				)
-			},
+			title:             "GetAllBlogPosts200 filter by term",
 			method:            "GET",
 			url:               "/posts?term=Second",
 			expectStatus:      200,
 			expectContentType: "application/json",
 			expectBody:        `[{"id":2,"title":"My Second Blog Post","content":"This is the content of my second blog post.","category":"Technology","tags":["Tech","Programming"]}]`,
+			expectSql: func(DBMock sqlmock.Sqlmock) {
+				DBMock.ExpectQuery("SELECT id, title, content, category, tags FROM posts WHERE title LIKE \\? OR category LIKE \\? OR tags LIKE \\?").
+					WithArgs("%Second%", "%Second%", "%Second%").WillReturnRows(
+					sqlmock.NewRows([]string{"id", "title", "content", "category", "tags"}).
+						AddRow(2, "My Second Blog Post", "This is the content of my second blog post.", "Technology", "Tech Programming"),
+				)
+			},
 		},
 	}
 
@@ -228,8 +228,8 @@ func run(t *testing.T, test Test) {
 	}
 	defer DB.Close()
 	SL.Load(DB)
-	if test.sqlMock != nil {
-		test.sqlMock(DBMock)
+	if test.expectSql != nil {
+		test.expectSql(DBMock)
 	}
 
 	// act
