@@ -49,7 +49,7 @@ func RegisterHandlers() {
 }
 
 type Post struct {
-	Id       int      `json:"id"`
+	Id       int64    `json:"id"`
 	Title    string   `json:"title"`
 	Content  string   `json:"content"`
 	Category string   `json:"category"`
@@ -72,22 +72,11 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	post.Id = id
 
 	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(struct {
-		Id       int64    `json:"id"`
-		Title    string   `json:"title"`
-		Content  string   `json:"content"`
-		Category string   `json:"category"`
-		Tags     []string `json:"tags"`
-	}{
-		Id:       id,
-		Title:    post.Title,
-		Content:  post.Content,
-		Category: post.Category,
-		Tags:     post.Tags,
-	})
+	json.NewEncoder(w).Encode(post)
 }
 
 func PutHandler(w http.ResponseWriter, r *http.Request) {
