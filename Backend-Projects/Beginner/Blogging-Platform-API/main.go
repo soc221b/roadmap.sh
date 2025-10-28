@@ -14,19 +14,6 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-type ServiceLocator struct {
-	DB *sql.DB
-}
-
-func (SL *ServiceLocator) Load(value any) {
-	switch v := value.(type) {
-	case *sql.DB:
-		SL.DB = v
-	}
-}
-
-var SL = ServiceLocator{}
-
 func main() {
 	DB, err := sql.Open("mysql", os.Getenv("DATA_SOURCE_NAME"))
 	if err != nil {
