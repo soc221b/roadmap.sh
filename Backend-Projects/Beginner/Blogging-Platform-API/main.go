@@ -63,11 +63,13 @@ func RegisterHandlers() {
 }
 
 type Post struct {
-	Id       int64    `json:"id"`
-	Title    string   `json:"title"`
-	Content  string   `json:"content"`
-	Category string   `json:"category"`
-	Tags     []string `json:"tags"`
+	Id        int64    `json:"id"`
+	Title     string   `json:"title"`
+	Content   string   `json:"content"`
+	Category  string   `json:"category"`
+	Tags      []string `json:"tags"`
+	CreatedAt string   `json:"created_at"`
+	UpdatedAt string   `json:"updated_at"`
 }
 
 func PostHandler(w http.ResponseWriter, r *http.Request) {
@@ -87,6 +89,19 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	post.Id = id
+
+	row := SL.DB.QueryRow("SELECT created_at, updated_at FROM posts WHERE id = ?", id)
+	if err := row.Scan(&post.CreatedAt, &post.UpdatedAt); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusBadRequest)
+		}
+		return
+	}
+	post.CreatedAt = FormatTime(post.CreatedAt)
+	post.UpdatedAt = FormatTime(post.UpdatedAt)
 
 	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")
@@ -115,6 +130,22 @@ func PutHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	row := SL.DB.QueryRow("SELECT id, created_at, updated_at FROM posts WHERE id = ?", id)
+	if err := row.Scan(&post.Id, &post.CreatedAt, &post.UpdatedAt); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusBadRequest)
+		}
+		return
+	}
+	post.CreatedAt = FormatTime(post.CreatedAt)
+	post.UpdatedAt = FormatTime(post.UpdatedAt)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(post)
 }
 
 func DeleteHandler(w http.ResponseWriter, r *http.Request) {
@@ -149,8 +180,8 @@ func GetHandler(w http.ResponseWriter, r *http.Request) {
 
 	post := Post{}
 	tags := ""
-	row := SL.DB.QueryRow("SELECT id, title, content, category, tags FROM posts WHERE id = ?", id)
-	if err := row.Scan(&post.Id, &post.Title, &post.Content, &post.Category, &tags); err != nil {
+	row := SL.DB.QueryRow("SELECT id, title, content, category, tags, created_at, updated_at FROM posts WHERE id = ?", id)
+	if err := row.Scan(&post.Id, &post.Title, &post.Content, &post.Category, &tags, &post.CreatedAt, &post.UpdatedAt); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			w.WriteHeader(http.StatusNotFound)
 		} else {
@@ -160,6 +191,8 @@ func GetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	post.Tags = strings.Split(tags, " ")
+	post.CreatedAt = FormatTime(post.CreatedAt)
+	post.UpdatedAt = FormatTime(post.UpdatedAt)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(post)
@@ -168,7 +201,7 @@ func GetHandler(w http.ResponseWriter, r *http.Request) {
 func GetAllHandler(w http.ResponseWriter, r *http.Request) {
 	term := "%" + r.URL.Query().Get("term") + "%"
 
-	rows, err := SL.DB.Query("SELECT id, title, content, category, tags FROM posts WHERE title LIKE ? OR category LIKE ? OR tags LIKE ?", term, term, term)
+	rows, err := SL.DB.Query("SELECT id, title, content, category, tags, created_at, updated_at FROM posts WHERE title LIKE ? OR category LIKE ? OR tags LIKE ?", term, term, term)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -180,13 +213,15 @@ func GetAllHandler(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		post := Post{}
 		tags := ""
-		err := rows.Scan(&post.Id, &post.Title, &post.Content, &post.Category, &tags)
+		err := rows.Scan(&post.Id, &post.Title, &post.Content, &post.Category, &tags, &post.CreatedAt, &post.UpdatedAt)
 		if err != nil {
 			fmt.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		post.Tags = strings.Split(tags, " ")
+		post.CreatedAt = FormatTime(post.CreatedAt)
+		post.UpdatedAt = FormatTime(post.UpdatedAt)
 
 		posts = append(posts, post)
 	}
@@ -207,4 +242,12 @@ func getPathValueInt(r *http.Request, w http.ResponseWriter, name string) (int, 
 		return 0, err
 	}
 	return value, err
+}
+
+func FormatTime(s string) string {
+	t, err := time.Parse("2006-01-02 15:04:05", s)
+	if err != nil {
+		panic(err)
+	}
+	return t.Format("2006-01-02T15:04:05Z")
 }

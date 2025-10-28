@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -21,6 +22,21 @@ type Test struct {
 	expectStatus      int
 	expectContentType string
 	expectBody        string
+}
+
+func TestFormatTime(t *testing.T) {
+	var tests = []struct {
+		argument string
+		expected string
+	}{
+		{argument: "2014-11-12 11:45:26", expected: "2014-11-12T11:45:26Z"},
+	}
+
+	for _, test := range tests {
+		if actual := FormatTime(test.argument); actual != test.expected {
+			t.Errorf("handler returned wrong status code: got %v want %v", actual, test.expected)
+		}
+	}
 }
 
 func TestApp(t *testing.T) {
@@ -42,9 +58,14 @@ func TestApp(t *testing.T) {
 			},
 			expectStatus:      201,
 			expectContentType: "application/json",
-			expectBody:        `{"id":1,"title":"My First Blog Post","content":"This is the content of my first blog post.","category":"Technology","tags":["Tech","Programming"]}`,
+			expectBody:        fmt.Sprintf(`{"id":1,"title":"My First Blog Post","content":"This is the content of my first blog post.","category":"Technology","tags":["Tech","Programming"],"created_at":"%s","updated_at":"%s"}`, "2021-09-01T12:00:00Z", "2021-09-01T12:00:00Z"),
 			expectSql: func(DBMock sqlmock.Sqlmock) {
 				DBMock.ExpectExec("INSERT INTO posts").WithArgs("My First Blog Post", "This is the content of my first blog post.", "Technology", "Tech Programming").WillReturnResult(sqlmock.NewResult(1, 1))
+				DBMock.ExpectQuery("SELECT created_at, updated_at FROM posts WHERE id =").
+					WithArgs(1).WillReturnRows(
+					sqlmock.NewRows([]string{"created_at", "updated_at"}).
+						AddRow("2021-09-01 12:00:00", "2021-09-01 12:00:00"),
+				)
 			},
 		},
 
@@ -63,11 +84,18 @@ func TestApp(t *testing.T) {
 				Category: "Tech",
 				Tags:     []string{"Programming", "Tech"},
 			},
-			expectStatus: 200,
+			expectStatus:      200,
+			expectContentType: "application/json",
+			expectBody:        fmt.Sprintf(`{"id":1,"title":"My Updated Blog Post","content":"This is the updated content of my first blog post.","category":"Tech","tags":["Programming","Tech"],"created_at":"%s","updated_at":"%s"}`, "2021-09-01T12:00:00Z", "2021-09-01T12:30:00Z"),
 			expectSql: func(DBMock sqlmock.Sqlmock) {
 				DBMock.ExpectExec("UPDATE posts SET title = \\?, content = \\?, category = \\?, tags = \\? WHERE id = \\?").
 					WithArgs("My Updated Blog Post", "This is the updated content of my first blog post.", "Tech", "Programming Tech", 1).
 					WillReturnResult(sqlmock.NewResult(0, 1))
+				DBMock.ExpectQuery("SELECT id, created_at, updated_at FROM posts WHERE id =").
+					WithArgs(1).WillReturnRows(
+					sqlmock.NewRows([]string{"id", "created_at", "updated_at"}).
+						AddRow(1, "2021-09-01 12:00:00", "2021-09-01 12:30:00"),
+				)
 			},
 		},
 
@@ -149,12 +177,12 @@ func TestApp(t *testing.T) {
 			url:               "/posts/1",
 			expectStatus:      200,
 			expectContentType: "application/json",
-			expectBody:        `{"id":1,"title":"My First Blog Post","content":"This is the content of my first blog post.","category":"Technology","tags":["Tech","Programming"]}`,
+			expectBody:        fmt.Sprintf(`{"id":1,"title":"My First Blog Post","content":"This is the content of my first blog post.","category":"Technology","tags":["Tech","Programming"],"created_at":"%s","updated_at":"%s"}`, "2021-09-01T12:00:00Z", "2021-09-01T12:30:00Z"),
 			expectSql: func(DBMock sqlmock.Sqlmock) {
-				DBMock.ExpectQuery("SELECT id, title, content, category, tags FROM posts WHERE id =").
+				DBMock.ExpectQuery("SELECT id, title, content, category, tags, created_at, updated_at FROM posts WHERE id =").
 					WithArgs(1).WillReturnRows(
-					sqlmock.NewRows([]string{"id", "title", "content", "category", "tags"}).
-						AddRow(1, "My First Blog Post", "This is the content of my first blog post.", "Technology", "Tech Programming"),
+					sqlmock.NewRows([]string{"id", "title", "content", "category", "tags", "created_at", "updated_at"}).
+						AddRow(1, "My First Blog Post", "This is the content of my first blog post.", "Technology", "Tech Programming", "2021-09-01 12:00:00", "2021-09-01 12:30:00"),
 				)
 			},
 		},
@@ -172,7 +200,7 @@ func TestApp(t *testing.T) {
 			url:          "/posts/1",
 			expectStatus: 404,
 			expectSql: func(DBMock sqlmock.Sqlmock) {
-				DBMock.ExpectQuery("SELECT id, title, content, category, tags FROM posts WHERE id = ?").
+				DBMock.ExpectQuery("SELECT id, title, content, category, tags, created_at, updated_at FROM posts WHERE id = ?").
 					WithArgs(1).
 					WillReturnError(sql.ErrNoRows)
 			},
@@ -184,13 +212,13 @@ func TestApp(t *testing.T) {
 			url:               "/posts",
 			expectStatus:      200,
 			expectContentType: "application/json",
-			expectBody:        `[{"id":1,"title":"My First Blog Post","content":"This is the content of my first blog post.","category":"Technology","tags":["Tech","Programming"]},{"id":2,"title":"My Second Blog Post","content":"This is the content of my second blog post.","category":"Technology","tags":["Tech","Programming"]}]`,
+			expectBody:        fmt.Sprintf(`[{"id":1,"title":"My First Blog Post","content":"This is the content of my first blog post.","category":"Technology","tags":["Tech","Programming"],"created_at":"%s","updated_at":"%s"},{"id":2,"title":"My Second Blog Post","content":"This is the content of my second blog post.","category":"Technology","tags":["Tech","Programming"],"created_at":"%s","updated_at":"%s"}]`, "2021-09-01T12:00:00Z", "2021-09-01T12:00:00Z", "2021-09-01T12:00:00Z", "2021-09-01T12:30:00Z"),
 			expectSql: func(DBMock sqlmock.Sqlmock) {
-				DBMock.ExpectQuery("SELECT id, title, content, category, tags FROM posts WHERE title LIKE \\? OR category LIKE \\? OR tags LIKE \\?").
+				DBMock.ExpectQuery("SELECT id, title, content, category, tags, created_at, updated_at FROM posts WHERE title LIKE \\? OR category LIKE \\? OR tags LIKE \\?").
 					WithArgs("%%", "%%", "%%").WillReturnRows(
-					sqlmock.NewRows([]string{"id", "title", "content", "category", "tags"}).
-						AddRow(1, "My First Blog Post", "This is the content of my first blog post.", "Technology", "Tech Programming").
-						AddRow(2, "My Second Blog Post", "This is the content of my second blog post.", "Technology", "Tech Programming"),
+					sqlmock.NewRows([]string{"id", "title", "content", "category", "tags", "created_at", "updated_at"}).
+						AddRow(1, "My First Blog Post", "This is the content of my first blog post.", "Technology", "Tech Programming", "2021-09-01 12:00:00", "2021-09-01 12:00:00").
+						AddRow(2, "My Second Blog Post", "This is the content of my second blog post.", "Technology", "Tech Programming", "2021-09-01 12:00:00", "2021-09-01 12:30:00"),
 				)
 			},
 		},
@@ -201,12 +229,12 @@ func TestApp(t *testing.T) {
 			url:               "/posts?term=Second",
 			expectStatus:      200,
 			expectContentType: "application/json",
-			expectBody:        `[{"id":2,"title":"My Second Blog Post","content":"This is the content of my second blog post.","category":"Technology","tags":["Tech","Programming"]}]`,
+			expectBody:        fmt.Sprintf(`[{"id":2,"title":"My Second Blog Post","content":"This is the content of my second blog post.","category":"Technology","tags":["Tech","Programming"],"created_at":"%s","updated_at":"%s"}]`, "2021-09-01T12:00:00Z", "2021-09-01T12:00:00Z"),
 			expectSql: func(DBMock sqlmock.Sqlmock) {
-				DBMock.ExpectQuery("SELECT id, title, content, category, tags FROM posts WHERE title LIKE \\? OR category LIKE \\? OR tags LIKE \\?").
+				DBMock.ExpectQuery("SELECT id, title, content, category, tags, created_at, updated_at FROM posts WHERE title LIKE \\? OR category LIKE \\? OR tags LIKE \\?").
 					WithArgs("%Second%", "%Second%", "%Second%").WillReturnRows(
-					sqlmock.NewRows([]string{"id", "title", "content", "category", "tags"}).
-						AddRow(2, "My Second Blog Post", "This is the content of my second blog post.", "Technology", "Tech Programming"),
+					sqlmock.NewRows([]string{"id", "title", "content", "category", "tags", "created_at", "updated_at"}).
+						AddRow(2, "My Second Blog Post", "This is the content of my second blog post.", "Technology", "Tech Programming", "2021-09-01 12:00:00", "2021-09-01 12:00:00"),
 				)
 			},
 		},
