@@ -205,10 +205,11 @@ func GetAllHandler(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-
 		post.Tags = strings.Split(tags, " ")
+
 		posts = append(posts, post)
 	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(posts)
 }
