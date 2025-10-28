@@ -73,7 +73,9 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	created := struct {
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(struct {
 		Id       int64    `json:"id"`
 		Title    string   `json:"title"`
 		Content  string   `json:"content"`
@@ -85,10 +87,7 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 		Content:  post.Content,
 		Category: post.Category,
 		Tags:     post.Tags,
-	}
-	w.WriteHeader(http.StatusCreated)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(created)
+	})
 }
 
 func PutHandler(w http.ResponseWriter, r *http.Request) {
@@ -113,8 +112,6 @@ func PutHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
-	w.WriteHeader(http.StatusOK)
 }
 
 func DeleteHandler(w http.ResponseWriter, r *http.Request) {
