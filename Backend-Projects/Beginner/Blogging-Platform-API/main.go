@@ -35,20 +35,6 @@ func main() {
 		}
 	}
 
-	const query = `
-	CREATE TABLE posts (
-			id INT AUTO_INCREMENT,
-			title TEXT NOT NULL,
-			content TEXT NOT NULL,
-			category TEXT NOT NULL,
-			tags TEXT NOT NULL,
-			PRIMARY KEY (id)
-	);`
-	_, err = DB.Exec(query)
-	if err != nil {
-		fmt.Println("table already exists, skip")
-	}
-
 	RegisterHandlers()
 
 	fmt.Println("Server listening on Port 8080")
