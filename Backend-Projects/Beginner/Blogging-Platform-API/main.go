@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -93,14 +92,8 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func PutHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.PathValue("id"))
+	id, err := getPathValueInt(r, w, "id")
 	if err != nil {
-		if errors.Is(err, strconv.ErrSyntax) {
-			w.WriteHeader(http.StatusBadRequest)
-		} else {
-			fmt.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
-		}
 		return
 	}
 
@@ -125,14 +118,8 @@ func PutHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.PathValue("id"))
+	id, err := getPathValueInt(r, w, "id")
 	if err != nil {
-		if errors.Is(err, strconv.ErrSyntax) {
-			w.WriteHeader(http.StatusBadRequest)
-		} else {
-			fmt.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
-		}
 		return
 	}
 
@@ -155,14 +142,8 @@ func DeleteHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.PathValue("id"))
+	id, err := getPathValueInt(r, w, "id")
 	if err != nil {
-		if errors.Is(err, strconv.ErrSyntax) {
-			w.WriteHeader(http.StatusBadRequest)
-		} else {
-			fmt.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
-		}
 		return
 	}
 
