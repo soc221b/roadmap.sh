@@ -52,7 +52,7 @@ def register():
     except:
         None
     else:
-        return abort(409)
+        abort(409)
 
     user = User.create(
         name=name,
@@ -118,10 +118,10 @@ def get_current_user():
 def post_todo():
     body = request.get_json()
     if isinstance(body['title'], str) == False:
-        return abort(400)
+        abort(400)
     title = bleach.clean(body['title'])
     if isinstance(body['description'], str) == False:
-        return abort(400)
+        abort(400)
     description = bleach.clean(body['description'])
     body = None
 
@@ -180,7 +180,7 @@ def get_todos():
         page = request.args.get('page', type=int)
         limit = request.args.get('limit', type=int)
     except:
-        return abort(400)
+        abort(400)
     offset = (page - 1) * limit
     return {
         'data': [{'id': x.id, 'title': x.title, 'description': x.description} for x in Todo.select().offset(offset).limit(limit)],
