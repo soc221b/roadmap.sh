@@ -141,7 +141,7 @@ def put_todo(id):
     try:
         todo = Todo.select().where(Todo.id == id).get()
     except:
-        return "", 404
+        abort(404)
 
     if todo.user_id != get_current_user().id:
         return {"message": "Forbidden"}, 403
@@ -152,7 +152,7 @@ def put_todo(id):
         todo.save()
         return {'id': todo.id, 'title': todo.title, 'description': todo.description}, 200
     except:
-        return "", 404
+        abort(404)
 
 
 @app.delete("/todos/<int:id>")
