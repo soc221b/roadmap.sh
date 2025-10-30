@@ -25,5 +25,5 @@ $ python3 -m flask run
 ```
 
 ```sh
-$ python3 -m unittest
+$ python3 -m unittest test.py
 ```
