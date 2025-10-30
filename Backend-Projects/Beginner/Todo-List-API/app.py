@@ -5,7 +5,7 @@ import bcrypt
 import bleach
 from dotenv import load_dotenv
 from flask import Flask, request, abort
-from peewee import *
+from peewee import SqliteDatabase, Model, CharField, ForeignKeyField
 
 load_dotenv()
 algorithm = "HS256"
