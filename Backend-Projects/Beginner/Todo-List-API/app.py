@@ -176,8 +176,11 @@ def get_todo(id):
 
 @app.get("/todos")
 def get_todos():
-    page = int(bleach.clean(request.args.get('page')))
-    limit = int(bleach.clean(request.args.get('limit')))
+    try:
+        page = request.args.get('page', type=int)
+        limit = request.args.get('limit', type=int)
+    except:
+        return abort(400)
     offset = (page - 1) * limit
     return {
         'data': [{'id': x.id, 'title': x.title, 'description': x.description} for x in Todo.select().offset(offset).limit(limit)],
