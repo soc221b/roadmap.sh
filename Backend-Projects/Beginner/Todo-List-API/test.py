@@ -1,12 +1,14 @@
 import unittest
 from app import create_app
+from app.db import init_db
 
 
 class Users(unittest.TestCase):
     def test_register_200(self):
-        app = create_app()
+        app = create_app({'DATABASE': 'file::memory:'})
         with app.test_client() as client:
             with app.app_context():
+                init_db()
                 resp = client.post(
                     "/register",
                     json={
@@ -20,9 +22,10 @@ class Users(unittest.TestCase):
                 assert isinstance(resp.json["token"], str)
 
     def test_register_409(self):
-        app = create_app()
+        app = create_app({'DATABASE': 'file::memory:'})
         with app.test_client() as client:
             with app.app_context():
+                init_db()
                 leanne = {
                     "name": "Ervin Howell",
                     "email": "ervin@example.com",
@@ -40,9 +43,10 @@ class Users(unittest.TestCase):
                 assert resp.status_code == 409
 
     def test_login_200(self):
-        app = create_app()
+        app = create_app({'DATABASE': 'file::memory:'})
         with app.test_client() as client:
             with app.app_context():
+                init_db()
                 client.post(
                     "/register",
                     json={
@@ -63,9 +67,10 @@ class Users(unittest.TestCase):
                 assert isinstance(resp.json["token"], str)
 
     def test_login_400(self):
-        app = create_app()
+        app = create_app({'DATABASE': 'file::memory:'})
         with app.test_client() as client:
             with app.app_context():
+                init_db()
                 client.post(
                     "/register",
                     json={
@@ -85,9 +90,10 @@ class Users(unittest.TestCase):
                 assert resp.status_code == 400
 
     def test_login_400_2(self):
-        app = create_app()
+        app = create_app({'DATABASE': 'file::memory:'})
         with app.test_client() as client:
             with app.app_context():
+                init_db()
                 client.post(
                     "/register",
                     json={
@@ -149,9 +155,10 @@ class Todos(unittest.TestCase):
         return resp.json["token"]
 
     def test_create_todo_201(self):
-        app = create_app()
+        app = create_app({'DATABASE': 'file::memory:'})
         with app.test_client() as client:
             with app.app_context():
+                init_db()
                 self.register_users(client)
                 resp = client.post(
                     "/todos",
@@ -172,9 +179,10 @@ class Todos(unittest.TestCase):
                 }
 
     def test_create_todo_400(self):
-        app = create_app()
+        app = create_app({'DATABASE': 'file::memory:'})
         with app.test_client() as client:
             with app.app_context():
+                init_db()
                 self.register_users(client)
                 resp = client.post(
                     "/todos",
@@ -190,9 +198,10 @@ class Todos(unittest.TestCase):
                 assert resp.status_code == 400
 
     def test_create_todo_400_2(self):
-        app = create_app()
+        app = create_app({'DATABASE': 'file::memory:'})
         with app.test_client() as client:
             with app.app_context():
+                init_db()
                 self.register_users(client)
                 resp = client.post(
                     "/todos",
@@ -208,9 +217,10 @@ class Todos(unittest.TestCase):
                 assert resp.status_code == 400
 
     def test_create_todo_401(self):
-        app = create_app()
+        app = create_app({'DATABASE': 'file::memory:'})
         with app.test_client() as client:
             with app.app_context():
+                init_db()
                 self.register_users(client)
                 resp = client.post(
                     "/todos",
@@ -224,9 +234,10 @@ class Todos(unittest.TestCase):
                 assert resp.json == {"message": "Unauthorized"}
 
     def test_update_todo_200(self):
-        app = create_app()
+        app = create_app({'DATABASE': 'file::memory:'})
         with app.test_client() as client:
             with app.app_context():
+                init_db()
                 self.register_users(client)
                 resp1 = client.post(
                     "/todos",
@@ -258,9 +269,10 @@ class Todos(unittest.TestCase):
                 }
 
     def test_update_todo_403(self):
-        app = create_app()
+        app = create_app({'DATABASE': 'file::memory:'})
         with app.test_client() as client:
             with app.app_context():
+                init_db()
                 self.register_users(client)
                 resp1 = client.post(
                     "/todos",
@@ -288,9 +300,10 @@ class Todos(unittest.TestCase):
                 assert resp2.json == {"message": "Forbidden"}
 
     def test_delete_todo_204(self):
-        app = create_app()
+        app = create_app({'DATABASE': 'file::memory:'})
         with app.test_client() as client:
             with app.app_context():
+                init_db()
                 self.register_users(client)
                 resp1 = client.post(
                     "/todos",
@@ -313,9 +326,10 @@ class Todos(unittest.TestCase):
                 assert resp2.status_code == 204
 
     def test_delete_todo_401(self):
-        app = create_app()
+        app = create_app({'DATABASE': 'file::memory:'})
         with app.test_client() as client:
             with app.app_context():
+                init_db()
                 self.register_users(client)
                 invalid_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30"
                 resp = client.delete(
@@ -329,9 +343,10 @@ class Todos(unittest.TestCase):
                 assert resp.json == {"message": "Unauthorized"}
 
     def test_delete_todo_403(self):
-        app = create_app()
+        app = create_app({'DATABASE': 'file::memory:'})
         with app.test_client() as client:
             with app.app_context():
+                init_db()
                 self.register_users(client)
                 resp1 = client.post(
                     "/todos",
@@ -355,9 +370,10 @@ class Todos(unittest.TestCase):
                 assert resp2.json == {"message": "Forbidden"}
 
     def test_get_todos_200(self):
-        app = create_app()
+        app = create_app({'DATABASE': 'file::memory:'})
         with app.test_client() as client:
             with app.app_context():
+                init_db()
                 self.register_users(client)
                 resp1 = client.post(
                     "/todos",
