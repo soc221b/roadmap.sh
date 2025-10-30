@@ -39,7 +39,7 @@ todos_db.connect()
 todos_db.create_tables([Todo])
 
 
-@app.route("/register", methods=['POST'])
+@app.post("/register")
 def register():
     body = request.get_json()
     name = bleach.clean(body['name'])
@@ -65,7 +65,7 @@ def register():
     return {"token": create_access_token(user)}
 
 
-@app.route("/login", methods=['POST'])
+@app.post("/login")
 def login():
     body = request.get_json()
     email = bleach.clean(body['email'])
@@ -114,7 +114,7 @@ def get_current_user():
     return User.get(User.id == decoded['user_id'])
 
 
-@app.route("/todos", methods=['POST'])
+@app.post("/todos")
 def post_todo():
     body = request.get_json()
     if isinstance(body['title'], str) == False:
@@ -131,7 +131,7 @@ def post_todo():
     return {'id': todo.id, 'title': title, 'description': description}, 201
 
 
-@app.route("/todos/<int:id>", methods=['PUT'])
+@app.put("/todos/<int:id>")
 def put_todo(id):
     body = request.get_json()
     title = bleach.clean(body['title'])
@@ -155,7 +155,7 @@ def put_todo(id):
         return "", 404
 
 
-@app.route("/todos/<int:id>", methods=['DELETE'])
+@app.delete("/todos/<int:id>")
 def delete_todo(id):
     try:
         todo = Todo.select().where(Todo.id == id).get()
@@ -169,12 +169,12 @@ def delete_todo(id):
     return "", 204
 
 
-@app.route("/todos/<int:id>", methods=['GET'])
+@app.get("/todos/<int:id>")
 def get_todo(id):
     return Todo.select().where(Todo.id == id).get()
 
 
-@app.route("/todos", methods=['GET'])
+@app.get("/todos")
 def get_todos():
     page = int(bleach.clean(request.args.get('page')))
     limit = int(bleach.clean(request.args.get('limit')))
