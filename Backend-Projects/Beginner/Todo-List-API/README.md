@@ -3,7 +3,8 @@
 ## Getting Started
 
 ```sh
-$ echo "SECRET=SHHHHHHHHH" >> .env
+$ echo -n "SECRET=" > .env
+$ python3 -c 'import secrets; print(secrets.token_hex())' >> .env
 $ virtualenv .venv
 $ source .venv/bin/activate
 $ pip3 install -r requirements.txt
