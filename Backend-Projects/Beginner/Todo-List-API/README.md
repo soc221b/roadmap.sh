@@ -13,11 +13,12 @@ $ pip3 install -r requirements.txt
 ## Run Locally
 
 ```sh
+$ python3 -m flask init-db
 $ python3 -m flask run
 ```
 
 ## Tests
 
 ```sh
-$ python3 -m unittest test.py
+$ python3 -m unittest
 ```
