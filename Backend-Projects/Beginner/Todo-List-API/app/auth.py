@@ -26,7 +26,7 @@ def register():
 
     db = get_db()
     try:
-        db.execute(
+        cursor = db.execute(
             "INSERT INTO user (name, email, password) VALUES (?, ?, ?)",
             (name, email, generate_password_hash(password)),
         )
@@ -34,7 +34,7 @@ def register():
     except db.IntegrityError:
         abort(409)
     else:
-        return {"token": create_access_token(db.cursor().lastrowid)}, 200
+        return {"token": create_access_token(cursor.lastrowid)}, 200
 
 
 @bp.post("/login")
