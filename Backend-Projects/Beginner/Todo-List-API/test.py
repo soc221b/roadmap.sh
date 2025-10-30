@@ -333,7 +333,7 @@ class Todos(unittest.TestCase):
                 self.register_users(client)
                 invalid_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30"
                 resp = client.delete(
-                    "/todos/" + str(id),
+                    "/todos/" + str(1),
                     headers={
                         "Authorization": "Bearer " + invalid_token
                     },
