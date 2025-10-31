@@ -13,15 +13,15 @@ bp = Blueprint('auth', __name__)
 @bp.post("/register")
 def register():
     body = request.get_json()
-    name = body['name']
-    email = body['email']
-    password = body['password']
+    name = body.get('name')
+    email = body.get('email')
+    password = body.get('password')
 
-    if not name:
+    if name is None:
         abort(400)
-    if not email:
+    if email is None:
         abort(400)
-    if not password:
+    if password is None:
         abort(400)
 
     db = get_db()
@@ -40,8 +40,13 @@ def register():
 @bp.post("/login")
 def login():
     body = request.get_json()
-    email = body['email']
-    password = body['password']
+    email = body.get('email')
+    password = body.get('password')
+
+    if email is None:
+        abort(400)
+    if password is None:
+        abort(400)
 
     db = get_db()
     user = db.execute(

@@ -21,6 +21,51 @@ class Users(unittest.TestCase):
                 assert resp.status_code == 200
                 assert isinstance(resp.json["token"], str)
 
+    def test_register_400_missing_name(self):
+        app = create_app({'DATABASE': 'file::memory:'})
+        with app.test_client() as client:
+            with app.app_context():
+                init_db()
+                resp = client.post(
+                    "/register",
+                    json={
+                        "email": "leanne@example.com",
+                        "password": "password"
+                    }
+                )
+
+                assert resp.status_code == 400
+
+    def test_register_400_missing_email(self):
+        app = create_app({'DATABASE': 'file::memory:'})
+        with app.test_client() as client:
+            with app.app_context():
+                init_db()
+                resp = client.post(
+                    "/register",
+                    json={
+                        "name": "Leanne Graham",
+                        "password": "password"
+                    }
+                )
+
+                assert resp.status_code == 400
+
+    def test_register_400_missing_password(self):
+        app = create_app({'DATABASE': 'file::memory:'})
+        with app.test_client() as client:
+            with app.app_context():
+                init_db()
+                resp = client.post(
+                    "/register",
+                    json={
+                        "name": "Leanne Graham",
+                        "email": "leanne@example.com",
+                    }
+                )
+
+                assert resp.status_code == 400
+
     def test_register_409(self):
         app = create_app({'DATABASE': 'file::memory:'})
         with app.test_client() as client:
@@ -65,6 +110,50 @@ class Users(unittest.TestCase):
 
                 assert resp.status_code == 200
                 assert isinstance(resp.json["token"], str)
+
+    def test_login_400_missing_email(self):
+        app = create_app({'DATABASE': 'file::memory:'})
+        with app.test_client() as client:
+            with app.app_context():
+                init_db()
+                client.post(
+                    "/register",
+                    json={
+                        "name": "Clementine Bauch",
+                        "email": "clementine@example.com",
+                        "password": "password"
+                    }
+                )
+                resp = client.post(
+                    "/login",
+                    json={
+                        "password": "password"
+                    }
+                )
+
+                assert resp.status_code == 400
+
+    def test_login_400_missing_password(self):
+        app = create_app({'DATABASE': 'file::memory:'})
+        with app.test_client() as client:
+            with app.app_context():
+                init_db()
+                client.post(
+                    "/register",
+                    json={
+                        "name": "Patricia Lebsack",
+                        "email": "patricia@example.com",
+                        "password": "password"
+                    }
+                )
+                resp = client.post(
+                    "/login",
+                    json={
+                        "email": "patricia@example.com",
+                    }
+                )
+
+                assert resp.status_code == 400
 
     def test_login_400_wrong_email(self):
         app = create_app({'DATABASE': 'file::memory:'})
