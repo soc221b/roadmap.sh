@@ -66,6 +66,70 @@ class Users(unittest.TestCase):
 
                 assert resp.status_code == 400
 
+    def test_register_400_wrong_name_type(self):
+        app = create_app({'DATABASE': 'file::memory:'})
+        with app.test_client() as client:
+            with app.app_context():
+                init_db()
+                resp = client.post(
+                    "/register",
+                    json={
+                        "name": 123,
+                        "email": "leanne@example.com",
+                        "password": "password"
+                    }
+                )
+
+                assert resp.status_code == 400
+
+    def test_register_400_wrong_email_type(self):
+        app = create_app({'DATABASE': 'file::memory:'})
+        with app.test_client() as client:
+            with app.app_context():
+                init_db()
+                resp = client.post(
+                    "/register",
+                    json={
+                        "name": "Leanne Graham",
+                        "email": 123,
+                        "password": "password"
+                    }
+                )
+
+                assert resp.status_code == 400
+
+    def test_register_400_wrong_email_format(self):
+        app = create_app({'DATABASE': 'file::memory:'})
+        with app.test_client() as client:
+            with app.app_context():
+                init_db()
+                resp = client.post(
+                    "/register",
+                    json={
+                        "name": "Leanne Graham",
+                        "email": "leanne@example.com",
+                        "password": 123,
+                    }
+                )
+
+                assert resp.status_code == 400
+
+    def test_register_400_wrong_email_format(self):
+        app = create_app({'DATABASE': 'file::memory:'})
+        with app.test_client() as client:
+            with app.app_context():
+                init_db()
+                resp = client.post(
+                    "/register",
+                    json={
+                        "name": "Leanne Graham",
+                        "email": "leanne",
+                        "password": "password"
+                    }
+                )
+
+                assert resp.status_code == 400
+
     def test_register_409(self):
         app = create_app({'DATABASE': 'file::memory:'})
         with app.test_client() as client:
@@ -201,6 +265,29 @@ class Users(unittest.TestCase):
 
                 assert resp.status_code == 400
 
+    def test_login_400_wrong_email_format(self):
+        app = create_app({'DATABASE': 'file::memory:'})
+        with app.test_client() as client:
+            with app.app_context():
+                init_db()
+                client.post(
+                    "/register",
+                    json={
+                        "name": "Clementine Bauch",
+                        "email": "clementine@example.com",
+                        "password": "password"
+                    }
+                )
+                resp = client.post(
+                    "/login",
+                    json={
+                        "email": "patricia",
+                        "password": "password"
+                    }
+                )
+
+                assert resp.status_code == 400
+
 
 class Todos(unittest.TestCase):
 
@@ -267,7 +354,43 @@ class Todos(unittest.TestCase):
                     "description": "Buy milk, eggs, and bread",
                 }
 
-    def test_create_todo_400(self):
+    def test_create_todo_400_missing_title(self):
+        app = create_app({'DATABASE': 'file::memory:'})
+        with app.test_client() as client:
+            with app.app_context():
+                init_db()
+                self.register_users(client)
+                resp = client.post(
+                    "/todos",
+                    headers={
+                        "Authorization": "Bearer " + self.get_token_1(client)
+                    },
+                    json={
+                        "description": "Buy milk, eggs, and bread"
+                    }
+                )
+
+                assert resp.status_code == 400
+
+    def test_create_todo_400_missing_description(self):
+        app = create_app({'DATABASE': 'file::memory:'})
+        with app.test_client() as client:
+            with app.app_context():
+                init_db()
+                self.register_users(client)
+                resp = client.post(
+                    "/todos",
+                    headers={
+                        "Authorization": "Bearer " + self.get_token_1(client)
+                    },
+                    json={
+                        "title": "Buy groceries",
+                    }
+                )
+
+                assert resp.status_code == 400
+
+    def test_create_todo_400_wrong_title_type(self):
         app = create_app({'DATABASE': 'file::memory:'})
         with app.test_client() as client:
             with app.app_context():
@@ -286,7 +409,7 @@ class Todos(unittest.TestCase):
 
                 assert resp.status_code == 400
 
-    def test_create_todo_400_2(self):
+    def test_create_todo_400_wrong_description_type(self):
         app = create_app({'DATABASE': 'file::memory:'})
         with app.test_client() as client:
             with app.app_context():
