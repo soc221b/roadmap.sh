@@ -5,30 +5,30 @@ import jwt
 from flask import request, abort, Blueprint, g
 from app.db import get_db
 from werkzeug.security import check_password_hash, generate_password_hash
+from pydantic import BaseModel, EmailStr, ValidationError
 
 
 bp = Blueprint('auth', __name__)
 
 
+class RegisterRequest(BaseModel):
+    name: str
+    email: EmailStr
+    password: str
+
+
 @bp.post("/register")
 def register():
-    body = request.get_json()
-    name = body.get('name')
-    email = body.get('email')
-    password = body.get('password')
-
-    if name is None:
-        abort(400)
-    if email is None:
-        abort(400)
-    if password is None:
+    try:
+        data = RegisterRequest(**request.json)
+    except ValidationError as e:
         abort(400)
 
     db = get_db()
     try:
         cursor = db.execute(
             "INSERT INTO user (name, email, password) VALUES (?, ?, ?)",
-            (name, email, generate_password_hash(password)),
+            (data.name, data.email, generate_password_hash(data.password)),
         )
         db.commit()
     except db.IntegrityError:
@@ -37,25 +37,26 @@ def register():
         return {"token": create_access_token(cursor.lastrowid)}, 200
 
 
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
 @bp.post("/login")
 def login():
-    body = request.get_json()
-    email = body.get('email')
-    password = body.get('password')
-
-    if email is None:
-        abort(400)
-    if password is None:
+    try:
+        data = LoginRequest(**request.json)
+    except ValidationError as e:
         abort(400)
 
     db = get_db()
     user = db.execute(
-        'SELECT * FROM user WHERE email = ?', (email,)
+        'SELECT * FROM user WHERE email = ?', (data.email,)
     ).fetchone()
 
     if user is None:
         return "Invalid email or password", 400
-    if not check_password_hash(user['password'], password):
+    if not check_password_hash(user['password'], data.password):
         return "Invalid email or password", 400
 
     return {"token": create_access_token(user['id'])}

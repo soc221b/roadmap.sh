@@ -1,41 +1,48 @@
 from flask import request, abort, Blueprint, g
 from app.auth import login_required
 from app.db import get_db
+from pydantic import BaseModel, ValidationError
 
 bp = Blueprint('todos', __name__)
+
+
+class PostTodoRequest(BaseModel):
+    title: str
+    description: str
 
 
 @bp.post("/todos")
 @login_required
 def post_todo():
-    body = request.get_json()
-    if isinstance(body['title'], str) == False:
+    try:
+        data = PostTodoRequest(**request.json)
+    except ValidationError as e:
         abort(400)
-    title = body['title']
-    if isinstance(body['description'], str) == False:
-        abort(400)
-    description = body['description']
-    body = None
 
     db = get_db()
     try:
         cursor = db.execute(
             "INSERT INTO todo (title, description, user_id) VALUES (?, ?, ?)",
-            (title, description, g.user['id']),
+            (data.title, data.description, g.user['id']),
         )
         db.commit()
-        return {'id': cursor.lastrowid, 'title': title, 'description': description}, 201
+        return {'id': cursor.lastrowid, 'title': data.title, 'description': data.description}, 201
     except:
         abort(500)
+
+
+class PutTodoRequest(BaseModel):
+    title: str
+    description: str
 
 
 @bp.put("/todos/<int:id>")
 @login_required
 def put_todo(id):
-    body = request.get_json()
-    title = body['title']
-    description = body['description']
-    body = None
+    try:
+        data = PutTodoRequest(**request.json)
+    except ValidationError as e:
+        abort(400)
 
     db = get_db()
     todo = db.execute(
@@ -52,10 +59,10 @@ def put_todo(id):
     try:
         db.execute(
             "UPDATE todo SET title = ?, description = ? WHERE id = ?",
-            (title, description, id),
+            (data.title, data.description, id),
         )
         db.commit()
-        return {'id': id, 'title': title, 'description': description}, 200
+        return {'id': id, 'title': data.title, 'description': data.description}, 200
     except:
         abort(500)
 
