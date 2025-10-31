@@ -66,7 +66,7 @@ class Users(unittest.TestCase):
                 assert resp.status_code == 200
                 assert isinstance(resp.json["token"], str)
 
-    def test_login_400(self):
+    def test_login_400_wrong_email(self):
         app = create_app({'DATABASE': 'file::memory:'})
         with app.test_client() as client:
             with app.app_context():
@@ -89,7 +89,7 @@ class Users(unittest.TestCase):
 
                 assert resp.status_code == 400
 
-    def test_login_400_2(self):
+    def test_login_400_wrong_password(self):
         app = create_app({'DATABASE': 'file::memory:'})
         with app.test_client() as client:
             with app.app_context():
