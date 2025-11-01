@@ -14,6 +14,7 @@ const path = resolve(import.meta.dirname, "./refresh-tokens.json");
 
 export class JWTAuthRepository implements AuthRepository {
   private users: User[] = [
+    // WARNING: THIS IS FOR DEMO, DO NOT WRITE THIS KIND OF CODE IN PRODUCTION
     {
       email: "user@example.com",
       password: "$2b$10$4vh/xfa5vBBAErqKvXFDCekWcBzT2Yp98Q2DrEY2R0xr0rxb2htNi",
