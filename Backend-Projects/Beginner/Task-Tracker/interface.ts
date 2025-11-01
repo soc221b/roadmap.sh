@@ -1,7 +1,9 @@
 export interface ITask {
   id: number;
-  title: string;
+  description: string;
   status: IStatus;
+  createdAt: number;
+  updatedAt: number;
 }
 
 export type IStatus = "todo" | "in-progress" | "done";
@@ -9,7 +11,7 @@ export type IStatus = "todo" | "in-progress" | "done";
 export interface IRepository {
   add(task: ITask): Promise<void>;
 
-  update(task: Pick<ITask, "id"> & Partial<ITask>): Promise<void>;
+  update(task: Pick<ITask, "id" | "updatedAt"> & Partial<ITask>): Promise<void>;
 
   delete(task: Pick<ITask, "id">): Promise<void>;
 
