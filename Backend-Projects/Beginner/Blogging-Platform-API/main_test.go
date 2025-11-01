@@ -13,7 +13,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 )
 
-type Test struct {
+type test struct {
 	title             string
 	expectSql         func(DBMock sqlmock.Sqlmock)
 	method            string
@@ -33,14 +33,14 @@ func TestFormatTime(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		if actual := FormatTime(test.argument); actual != test.expected {
+		if actual := formatTime(test.argument); actual != test.expected {
 			t.Errorf("handler returned wrong status code: got %v want %v", actual, test.expected)
 		}
 	}
 }
 
 func TestApp(t *testing.T) {
-	var tests = []Test{
+	var tests = []test{
 		{
 			title:  "CreateBlogPost201",
 			method: "POST",
@@ -240,7 +240,7 @@ func TestApp(t *testing.T) {
 		},
 	}
 
-	RegisterHandlers()
+	registerHandlers()
 	for _, test := range tests {
 		t.Run(test.title, func(t *testing.T) {
 			run(t, test)
@@ -248,14 +248,14 @@ func TestApp(t *testing.T) {
 	}
 }
 
-func run(t *testing.T, test Test) {
+func run(t *testing.T, test test) {
 	// arrange
 	DB, DBMock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
 	defer DB.Close()
-	SL.Load(DB)
+	sl.Load(DB)
 	if test.expectSql != nil {
 		test.expectSql(DBMock)
 	}

@@ -14,18 +14,18 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-type ServiceLocator struct {
+type serviceLocator struct {
 	DB *sql.DB
 }
 
-func (SL *ServiceLocator) Load(value any) {
+func (sl *serviceLocator) Load(value any) {
 	switch v := value.(type) {
 	case *sql.DB:
-		SL.DB = v
+		sl.DB = v
 	}
 }
 
-var SL = ServiceLocator{}
+var sl = serviceLocator{}
 
 func main() {
 	DB, err := sql.Open("mysql", os.Getenv("DATA_SOURCE_NAME"))
@@ -33,7 +33,7 @@ func main() {
 		panic(err)
 	}
 	defer DB.Close()
-	SL.Load(DB)
+	sl.Load(DB)
 
 	retryTimes := 0
 	for {
@@ -48,21 +48,21 @@ func main() {
 		}
 	}
 
-	RegisterHandlers()
+	registerHandlers()
 
 	fmt.Println("Server listening on Port 8080")
 	http.ListenAndServe(":8080", nil)
 }
 
-func RegisterHandlers() {
-	http.HandleFunc("POST /posts", PostHandler)
-	http.HandleFunc("PUT /posts/{id}", PutHandler)
-	http.HandleFunc("DELETE /posts/{id}", DeleteHandler)
-	http.HandleFunc("GET /posts/{id}", GetHandler)
-	http.HandleFunc("GET /posts", GetAllHandler)
+func registerHandlers() {
+	http.HandleFunc("POST /posts", postHandler)
+	http.HandleFunc("PUT /posts/{id}", putHandler)
+	http.HandleFunc("DELETE /posts/{id}", deleteHandler)
+	http.HandleFunc("GET /posts/{id}", getHandler)
+	http.HandleFunc("GET /posts", getAllHandler)
 }
 
-type Post struct {
+type post struct {
 	Id        int64    `json:"id"`
 	Title     string   `json:"title"`
 	Content   string   `json:"content"`
@@ -72,10 +72,10 @@ type Post struct {
 	UpdatedAt string   `json:"updated_at"`
 }
 
-func PostHandler(w http.ResponseWriter, r *http.Request) {
-	post := Post{}
+func postHandler(w http.ResponseWriter, r *http.Request) {
+	post := post{}
 	json.NewDecoder(r.Body).Decode(&post)
-	result, err := SL.DB.Exec(`INSERT INTO posts (title, content, category, tags) VALUES (?, ?, ?, ?)`, post.Title, post.Content, post.Category, strings.Join(post.Tags, " "))
+	result, err := sl.DB.Exec(`INSERT INTO posts (title, content, category, tags) VALUES (?, ?, ?, ?)`, post.Title, post.Content, post.Category, strings.Join(post.Tags, " "))
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -90,7 +90,7 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	post.Id = id
 
-	row := SL.DB.QueryRow("SELECT created_at, updated_at FROM posts WHERE id = ?", id)
+	row := sl.DB.QueryRow("SELECT created_at, updated_at FROM posts WHERE id = ?", id)
 	if err := row.Scan(&post.CreatedAt, &post.UpdatedAt); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			w.WriteHeader(http.StatusNotFound)
@@ -100,23 +100,23 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	post.CreatedAt = FormatTime(post.CreatedAt)
-	post.UpdatedAt = FormatTime(post.UpdatedAt)
+	post.CreatedAt = formatTime(post.CreatedAt)
+	post.UpdatedAt = formatTime(post.UpdatedAt)
 
 	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(post)
 }
 
-func PutHandler(w http.ResponseWriter, r *http.Request) {
+func putHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := getPathValueInt(r, w, "id")
 	if err != nil {
 		return
 	}
 
-	post := Post{}
+	post := post{}
 	json.NewDecoder(r.Body).Decode(&post)
-	result, err := SL.DB.Exec(`UPDATE posts SET title = ?, content = ?, category = ?, tags = ? WHERE id = ?`, post.Title, post.Content, post.Category, strings.Join(post.Tags, " "), id)
+	result, err := sl.DB.Exec(`UPDATE posts SET title = ?, content = ?, category = ?, tags = ? WHERE id = ?`, post.Title, post.Content, post.Category, strings.Join(post.Tags, " "), id)
 	if numberOfRows, err := result.RowsAffected(); err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -131,7 +131,7 @@ func PutHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	row := SL.DB.QueryRow("SELECT id, created_at, updated_at FROM posts WHERE id = ?", id)
+	row := sl.DB.QueryRow("SELECT id, created_at, updated_at FROM posts WHERE id = ?", id)
 	if err := row.Scan(&post.Id, &post.CreatedAt, &post.UpdatedAt); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			w.WriteHeader(http.StatusNotFound)
@@ -141,20 +141,20 @@ func PutHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	post.CreatedAt = FormatTime(post.CreatedAt)
-	post.UpdatedAt = FormatTime(post.UpdatedAt)
+	post.CreatedAt = formatTime(post.CreatedAt)
+	post.UpdatedAt = formatTime(post.UpdatedAt)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(post)
 }
 
-func DeleteHandler(w http.ResponseWriter, r *http.Request) {
+func deleteHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := getPathValueInt(r, w, "id")
 	if err != nil {
 		return
 	}
 
-	result, err := SL.DB.Exec(`DELETE FROM posts WHERE id = ?`, id)
+	result, err := sl.DB.Exec(`DELETE FROM posts WHERE id = ?`, id)
 	if numberOfRows, err := result.RowsAffected(); err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -172,15 +172,15 @@ func DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func GetHandler(w http.ResponseWriter, r *http.Request) {
+func getHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := getPathValueInt(r, w, "id")
 	if err != nil {
 		return
 	}
 
-	post := Post{}
+	post := post{}
 	tags := ""
-	row := SL.DB.QueryRow("SELECT id, title, content, category, tags, created_at, updated_at FROM posts WHERE id = ?", id)
+	row := sl.DB.QueryRow("SELECT id, title, content, category, tags, created_at, updated_at FROM posts WHERE id = ?", id)
 	if err := row.Scan(&post.Id, &post.Title, &post.Content, &post.Category, &tags, &post.CreatedAt, &post.UpdatedAt); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			w.WriteHeader(http.StatusNotFound)
@@ -191,17 +191,17 @@ func GetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	post.Tags = strings.Split(tags, " ")
-	post.CreatedAt = FormatTime(post.CreatedAt)
-	post.UpdatedAt = FormatTime(post.UpdatedAt)
+	post.CreatedAt = formatTime(post.CreatedAt)
+	post.UpdatedAt = formatTime(post.UpdatedAt)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(post)
 }
 
-func GetAllHandler(w http.ResponseWriter, r *http.Request) {
+func getAllHandler(w http.ResponseWriter, r *http.Request) {
 	term := "%" + r.URL.Query().Get("term") + "%"
 
-	rows, err := SL.DB.Query("SELECT id, title, content, category, tags, created_at, updated_at FROM posts WHERE title LIKE ? OR category LIKE ? OR tags LIKE ?", term, term, term)
+	rows, err := sl.DB.Query("SELECT id, title, content, category, tags, created_at, updated_at FROM posts WHERE title LIKE ? OR category LIKE ? OR tags LIKE ?", term, term, term)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -209,9 +209,9 @@ func GetAllHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
-	posts := []Post{}
+	posts := []post{}
 	for rows.Next() {
-		post := Post{}
+		post := post{}
 		tags := ""
 		err := rows.Scan(&post.Id, &post.Title, &post.Content, &post.Category, &tags, &post.CreatedAt, &post.UpdatedAt)
 		if err != nil {
@@ -220,8 +220,8 @@ func GetAllHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		post.Tags = strings.Split(tags, " ")
-		post.CreatedAt = FormatTime(post.CreatedAt)
-		post.UpdatedAt = FormatTime(post.UpdatedAt)
+		post.CreatedAt = formatTime(post.CreatedAt)
+		post.UpdatedAt = formatTime(post.UpdatedAt)
 
 		posts = append(posts, post)
 	}
@@ -244,7 +244,7 @@ func getPathValueInt(r *http.Request, w http.ResponseWriter, name string) (int, 
 	return value, err
 }
 
-func FormatTime(s string) string {
+func formatTime(s string) string {
 	t, err := time.Parse("2006-01-02 15:04:05", s)
 	if err != nil {
 		panic(err)
