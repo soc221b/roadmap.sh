@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt";
+import { Worker } from "worker_threads";
 import jwt from "jsonwebtoken";
 import { AuthRepository } from "../../interfaces/auth-repository.ts";
 import type { User } from "../../interfaces/user.ts";
@@ -25,8 +25,12 @@ export class JWTAuthRepository implements AuthRepository {
     const hash = this.users.find((u) => u.email === user.email)?.password;
     if (hash === undefined) throw Error();
 
-    const result = bcrypt.compareSync(user.password, hash);
-    if (result === false) throw Error();
+    const worker = new Worker("./repositories/auth/jwt-worker.ts");
+    let resolve;
+    const promise = new Promise<boolean>((r) => (resolve = r));
+    worker.on("message", (message) => resolve(message));
+    worker.postMessage({ password: user.password, hash });
+    if ((await promise) === false) throw Error();
 
     const refreshToken = await this.generateRefreshToken();
     writeFileSync(
