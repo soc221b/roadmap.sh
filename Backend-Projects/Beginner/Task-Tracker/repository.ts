@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from "fs";
-import type { ITask, IRepository } from "./interface.ts";
 import { resolve } from "path";
 import { cwd } from "process";
+import type { ITask, IRepository, IStatus } from "./interface.ts";
 
 export class Repository implements IRepository {
   private readonly path = resolve(cwd(), "tasks.json");
@@ -22,9 +22,7 @@ export class Repository implements IRepository {
     await this._update((await this._read()).filter((t) => t.id !== task.id));
   }
 
-  async list(
-    status?: import("./interface").IStatus | undefined
-  ): Promise<ITask[]> {
+  async list(status?: IStatus | undefined): Promise<ITask[]> {
     return (await this._read()).filter(
       (task) => task.status === status || status === undefined
     );

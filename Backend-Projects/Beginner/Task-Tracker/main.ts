@@ -1,5 +1,5 @@
-import { RootCommander } from "./commander.ts";
 import type { ICommander, IRepository } from "./interface.ts";
+import { RootCommander } from "./commander.ts";
 import { Repository } from "./repository.ts";
 
 const repository: IRepository = new Repository();
